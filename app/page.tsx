@@ -6,6 +6,7 @@ export default function Home() {
     { name: "DKIM Checker", href: "/tools/dkim-checker" },
     { name: "DMARC Checker", href: "/tools/dmarc-checker" },
     { name: "MX Lookup", href: "/tools/mx-checker" },
+    { name: "Blacklist Checker", href: "/tools/blacklist-checker" },
   ];
 
   return (
