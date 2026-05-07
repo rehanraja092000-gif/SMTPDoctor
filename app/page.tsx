@@ -1,24 +1,12 @@
-"use client";
-
-import { useState } from "react";
+import Link from "next/link";
 
 export default function Home() {
-  const [domain, setDomain] = useState("");
-  const [result, setResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-
-  const checkSPF = async () => {
-    if (!domain) return;
-
-    setLoading(true);
-    setResult(null);
-
-    const res = await fetch(`/api/spf-check?domain=${domain}`);
-    const data = await res.json();
-
-    setResult(data);
-    setLoading(false);
-  };
+  const tools = [
+    { name: "SPF Checker", href: "/tools/spf-checker" },
+    { name: "DKIM Checker", href: "/tools/dkim-checker" },
+    { name: "DMARC Checker", href: "/tools/dmarc-checker" },
+    { name: "MX Lookup", href: "/tools/mx-lookup" },
+  ];
 
   return (
     <main className="min-h-screen bg-white text-gray-900">
@@ -26,41 +14,29 @@ export default function Home() {
         <h1 className="text-2xl font-bold">SMTPDoctor</h1>
       </nav>
 
-      <section className="mx-auto max-w-4xl px-6 py-24 text-center">
+      <section className="mx-auto max-w-5xl px-6 py-24 text-center">
         <h2 className="text-5xl font-bold leading-tight">
-          Free SPF Checker Tool
+          Fix Email Deliverability Problems
         </h2>
 
         <p className="mt-6 text-lg text-gray-600">
-          Enter a domain and instantly validate its SPF record.
+          Free tools to validate SPF, DKIM, DMARC and DNS records.
         </p>
+      </section>
 
-        <div className="mt-10 flex gap-3 justify-center">
-          <input
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            placeholder="example.com"
-            className="w-full max-w-md rounded-xl border px-4 py-3"
-          />
-          <button
-            onClick={checkSPF}
-            className="rounded-xl bg-black px-6 py-3 text-white"
+      <section className="mx-auto grid max-w-6xl gap-6 px-6 pb-24 md:grid-cols-4">
+        {tools.map((tool) => (
+          <Link
+            key={tool.name}
+            href={tool.href}
+            className="rounded-2xl border bg-white p-6 shadow-sm hover:shadow-md"
           >
-            {loading ? "Checking..." : "Check SPF"}
-          </button>
-        </div>
-
-        {result && (
-          <div className="mt-10 rounded-2xl border bg-gray-50 p-6 text-left">
-            <p><strong>Domain:</strong> {result.domain}</p>
-            <p><strong>Status:</strong> {result.status}</p>
-            {result.record && (
-              <p className="mt-2 break-all">
-                <strong>Record:</strong> {result.record}
-              </p>
-            )}
-          </div>
-        )}
+            <h3 className="text-xl font-semibold">{tool.name}</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Open tool →
+            </p>
+          </Link>
+        ))}
       </section>
     </main>
   );
