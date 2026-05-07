@@ -8,6 +8,7 @@ export default function Home() {
     { name: "MX Lookup", href: "/tools/mx-checker" },
     { name: "Blacklist Checker", href: "/tools/blacklist-checker" },
     { name: "SMTP Port Tester", href: "/tools/port-checker" },
+    { name: "NS Lookup", href: "/tools/ns-checker" },
   ];
 
   return (
