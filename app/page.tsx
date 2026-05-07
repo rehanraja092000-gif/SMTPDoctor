@@ -7,6 +7,7 @@ export default function Home() {
     { name: "DMARC Checker", href: "/tools/dmarc-checker" },
     { name: "MX Lookup", href: "/tools/mx-checker" },
     { name: "Blacklist Checker", href: "/tools/blacklist-checker" },
+    { name: "SMTP Port Tester", href: "/tools/port-checker" },
   ];
 
   return (
