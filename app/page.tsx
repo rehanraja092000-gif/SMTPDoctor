@@ -1,53 +1,65 @@
+"use client";
+
+import { useState } from "react";
+
 export default function Home() {
+  const [domain, setDomain] = useState("");
+  const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  const checkSPF = async () => {
+    if (!domain) return;
+
+    setLoading(true);
+    setResult(null);
+
+    const res = await fetch(`/api/spf-check?domain=${domain}`);
+    const data = await res.json();
+
+    setResult(data);
+    setLoading(false);
+  };
+
   return (
     <main className="min-h-screen bg-white text-gray-900">
-      {/* Navbar */}
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
         <h1 className="text-2xl font-bold">SMTPDoctor</h1>
-        <button className="rounded-xl bg-black px-5 py-2 text-white hover:opacity-90">
-          Analyze Domain
-        </button>
       </nav>
 
-      {/* Hero */}
-      <section className="mx-auto max-w-7xl px-6 py-24 text-center">
-        <p className="mb-4 inline-block rounded-full border px-4 py-1 text-sm text-gray-600">
-          Email Deliverability Tools
-        </p>
-
-        <h2 className="mx-auto max-w-4xl text-5xl font-bold leading-tight">
-          Fix SPF, DKIM & DMARC Issues Before Your Emails Hit Spam
+      <section className="mx-auto max-w-4xl px-6 py-24 text-center">
+        <h2 className="text-5xl font-bold leading-tight">
+          Free SPF Checker Tool
         </h2>
 
-        <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600">
-          Free tools to analyze your email authentication records, improve inbox
-          placement, and keep your domain healthy.
+        <p className="mt-6 text-lg text-gray-600">
+          Enter a domain and instantly validate its SPF record.
         </p>
 
-        <div className="mt-10 flex justify-center gap-4">
-          <button className="rounded-xl bg-black px-6 py-3 text-white">
-            Start Free Scan
-          </button>
-          <button className="rounded-xl border px-6 py-3">
-            Learn More
+        <div className="mt-10 flex gap-3 justify-center">
+          <input
+            value={domain}
+            onChange={(e) => setDomain(e.target.value)}
+            placeholder="example.com"
+            className="w-full max-w-md rounded-xl border px-4 py-3"
+          />
+          <button
+            onClick={checkSPF}
+            className="rounded-xl bg-black px-6 py-3 text-white"
+          >
+            {loading ? "Checking..." : "Check SPF"}
           </button>
         </div>
-      </section>
 
-      {/* Tool Cards */}
-      <section className="mx-auto grid max-w-7xl gap-6 px-6 pb-24 md:grid-cols-4">
-        {["SPF Checker", "DKIM Checker", "DMARC Checker", "MX Lookup"].map(
-          (tool) => (
-            <div
-              key={tool}
-              className="rounded-2xl border bg-white p-6 shadow-sm hover:shadow-md transition"
-            >
-              <h3 className="text-xl font-semibold">{tool}</h3>
-              <p className="mt-2 text-sm text-gray-600">
-                Quickly analyze and validate your DNS records.
+        {result && (
+          <div className="mt-10 rounded-2xl border bg-gray-50 p-6 text-left">
+            <p><strong>Domain:</strong> {result.domain}</p>
+            <p><strong>Status:</strong> {result.status}</p>
+            {result.record && (
+              <p className="mt-2 break-all">
+                <strong>Record:</strong> {result.record}
               </p>
-            </div>
-          )
+            )}
+          </div>
         )}
       </section>
     </main>
