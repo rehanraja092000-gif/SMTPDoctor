@@ -9,6 +9,7 @@ export default function Home() {
     { name: "Blacklist Checker", href: "/tools/blacklist-checker" },
     { name: "SMTP Port Tester", href: "/tools/port-checker" },
     { name: "NS Lookup", href: "/tools/ns-checker" },
+    { name: "PTR Lookup", href: "/tools/ptr-checker" },
   ];
 
   return (
