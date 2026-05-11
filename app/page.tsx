@@ -13,6 +13,7 @@ export default function Home() {
     { name: "IP Lookup", href: "/tools/a-checker" },
     { name: "CNAME Lookup", href: "/tools/cname-checker" },
     { name: "Subdomain Scanner", href: "/tools/subdomain-checker" },
+    { name: "WHOIS Lookup", href: "/tools/whois-checker" },
   ];
 
   return (
