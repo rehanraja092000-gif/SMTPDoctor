@@ -12,6 +12,7 @@ export default function Home() {
     { name: "PTR Lookup", href: "/tools/ptr-checker" },
     { name: "IP Lookup", href: "/tools/a-checker" },
     { name: "CNAME Lookup", href: "/tools/cname-checker" },
+    { name: "Subdomain Scanner", href: "/tools/subdomain-checker" },
   ];
 
   return (
