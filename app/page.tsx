@@ -11,6 +11,7 @@ export default function Home() {
     { name: "NS Lookup", href: "/tools/ns-checker" },
     { name: "PTR Lookup", href: "/tools/ptr-checker" },
     { name: "IP Lookup", href: "/tools/a-checker" },
+    { name: "CNAME Lookup", href: "/tools/cname-checker" },
   ];
 
   return (
