@@ -29,6 +29,42 @@ export default function WhoisChecker() {
 
   const info = result?.data || {};
 
+  const registrar =
+    info.registrar ||
+    info.sponsoringRegistrar ||
+    "N/A";
+
+  const creationDate =
+    info.creationDate ||
+    info.createdDate ||
+    "N/A";
+
+  const expiryDate =
+    info.registrarRegistrationExpirationDate ||
+    info.registryExpiryDate ||
+    info.expiryDate ||
+    "N/A";
+
+  const updatedDate =
+    info.updatedDate ||
+    info.updatedDateUTC ||
+    "N/A";
+
+  const country =
+    info.registrantCountry ||
+    info.country ||
+    "N/A";
+
+  const nameServers =
+    info.nameServer ||
+    info.nserver ||
+    [];
+
+  const domainStatus =
+    info.domainStatus ||
+    info.status ||
+    "N/A";
+
   return (
     <main className="min-h-screen bg-white px-6 py-20">
       <div className="mx-auto max-w-6xl text-center">
@@ -59,6 +95,7 @@ export default function WhoisChecker() {
         {result && (
           <div className="mt-14 rounded-3xl border p-8 text-left">
             <div className="grid gap-6 md:grid-cols-2">
+
               <div className="rounded-2xl border bg-slate-50 p-6">
                 <p className="text-sm text-slate-500">Domain</p>
                 <p className="mt-2 text-xl font-semibold break-all">
@@ -69,66 +106,77 @@ export default function WhoisChecker() {
               <div className="rounded-2xl border bg-slate-50 p-6">
                 <p className="text-sm text-slate-500">Registrar</p>
                 <p className="mt-2 text-xl font-semibold break-all">
-                  {info.registrar || "N/A"}
+                  {registrar}
                 </p>
               </div>
 
               <div className="rounded-2xl border bg-slate-50 p-6">
                 <p className="text-sm text-slate-500">Creation Date</p>
                 <p className="mt-2 text-xl font-semibold break-all">
-                  {info.creationDate || "N/A"}
+                  {creationDate}
                 </p>
               </div>
 
               <div className="rounded-2xl border bg-slate-50 p-6">
                 <p className="text-sm text-slate-500">Expiration Date</p>
                 <p className="mt-2 text-xl font-semibold break-all">
-                  {info.registrarRegistrationExpirationDate || "N/A"}
+                  {expiryDate}
                 </p>
               </div>
 
               <div className="rounded-2xl border bg-slate-50 p-6">
                 <p className="text-sm text-slate-500">Updated Date</p>
                 <p className="mt-2 text-xl font-semibold break-all">
-                  {info.updatedDate || "N/A"}
+                  {updatedDate}
                 </p>
               </div>
 
               <div className="rounded-2xl border bg-slate-50 p-6">
-                <p className="text-sm text-slate-500">Registrant Country</p>
+                <p className="text-sm text-slate-500">
+                  Registrant Country
+                </p>
                 <p className="mt-2 text-xl font-semibold break-all">
-                  {info.registrantCountry || "N/A"}
+                  {country}
                 </p>
               </div>
 
               <div className="rounded-2xl border bg-slate-50 p-6 md:col-span-2">
-                <p className="text-sm text-slate-500">Name Servers</p>
+                <p className="text-sm text-slate-500">
+                  Name Servers
+                </p>
 
                 <div className="mt-3 flex flex-wrap gap-3">
-                  {Array.isArray(info.nameServer)
-                    ? info.nameServer.map((ns: string, i: number) => (
-                        <div
-                          key={i}
-                          className="rounded-xl border bg-white px-4 py-2 text-lg"
-                        >
-                          {ns}
-                        </div>
-                      ))
-                    : (
-                      <div className="rounded-xl border bg-white px-4 py-2 text-lg">
-                        {info.nameServer || "N/A"}
+
+                  {Array.isArray(nameServers) ? (
+                    nameServers.map((ns: string, i: number) => (
+                      <div
+                        key={i}
+                        className="rounded-xl border bg-white px-4 py-2 text-lg"
+                      >
+                        {ns}
                       </div>
-                    )}
+                    ))
+                  ) : (
+                    <div className="rounded-xl border bg-white px-4 py-2 text-lg">
+                      {nameServers || "N/A"}
+                    </div>
+                  )}
+
                 </div>
               </div>
 
               <div className="rounded-2xl border bg-slate-50 p-6 md:col-span-2">
-                <p className="text-sm text-slate-500">Domain Status</p>
+                <p className="text-sm text-slate-500">
+                  Domain Status
+                </p>
 
                 <p className="mt-3 text-lg break-all">
-                  {info.domainStatus || "N/A"}
+                  {Array.isArray(domainStatus)
+                    ? domainStatus.join(", ")
+                    : domainStatus}
                 </p>
               </div>
+
             </div>
           </div>
         )}
