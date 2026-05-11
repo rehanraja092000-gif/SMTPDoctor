@@ -10,7 +10,7 @@ export default function Home() {
     { name: "SMTP Port Tester", href: "/tools/port-checker" },
     { name: "NS Lookup", href: "/tools/ns-checker" },
     { name: "PTR Lookup", href: "/tools/ptr-checker" },
-    { name: "A Record Lookup", href: "/tools/a-checker" },
+    { name: "IP Lookup", href: "/tools/a-checker" },
   ];
 
   return (

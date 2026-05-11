@@ -16,22 +16,28 @@ export async function GET(req: Request) {
     );
   }
 
-  try {
-    const records = await resolver.resolve4(domain);
+  let aRecords: string[] = [];
+  let aaaaRecords: string[] = [];
 
-    return NextResponse.json({
-      domain,
-      status: "A records found",
-      count: records.length,
-      records,
-    });
-  } catch (error: any) {
-    return NextResponse.json({
-      domain,
-      status: "Lookup failed",
-      error: error.code || error.message,
-      count: 0,
-      records: [],
-    });
-  }
+  try {
+    aRecords = await resolver.resolve4(domain);
+  } catch {}
+
+  try {
+    aaaaRecords = await resolver.resolve6(domain);
+  } catch {}
+
+  return NextResponse.json({
+    domain,
+    status:
+      aRecords.length || aaaaRecords.length
+        ? "IP records found"
+        : "No records found",
+
+    aCount: aRecords.length,
+    aaaaCount: aaaaRecords.length,
+
+    aRecords,
+    aaaaRecords,
+  });
 }
