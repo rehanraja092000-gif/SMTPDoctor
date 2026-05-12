@@ -14,6 +14,7 @@ export default function Home() {
     { name: "CNAME Lookup", href: "/tools/cname-checker" },
     { name: "Subdomain Scanner", href: "/tools/subdomain-checker" },
     { name: "WHOIS Lookup", href: "/tools/whois-checker" },
+    { name: "TXT Record Lookup", href: "/tools/txt-checker" },
   ];
 
   return (
