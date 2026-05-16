@@ -16,6 +16,7 @@ export default function Home() {
     { name: "WHOIS Lookup", href: "/tools/whois-checker" },
     { name: "TXT Record Lookup", href: "/tools/txt-checker" },
     { name: "DNS Propagation Checker", href: "/tools/propagation-checker" },
+    { name: "AXFR Checker", href: "/tools/axfr-checker" },
   ];
 
   return (
