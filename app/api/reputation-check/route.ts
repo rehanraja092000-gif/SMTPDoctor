@@ -1,69 +1,106 @@
 import { NextResponse } from "next/server";
-import dns from "dns/promises";
 
 const GOOGLE_API_KEY =
   process.env.GOOGLE_SAFE_BROWSING_API_KEY;
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
+async function resolveDNS(
+  name: string,
+  type: string
+) {
+  const url =
+    `https://dns.google/resolve?name=${name}&type=${type}`;
 
-  const domain = searchParams.get("domain");
+  const res = await fetch(url);
+
+  return res.json();
+}
+
+export async function GET(req: Request) {
+
+  const { searchParams } =
+    new URL(req.url);
+
+  const domain =
+    searchParams.get("domain");
 
   if (!domain) {
+
     return NextResponse.json(
       {
-        error: "Domain is required",
+        error:
+          "Domain is required",
       },
       { status: 400 }
     );
+
   }
 
   let score = 100;
 
-  const checks = [];
+  let unsafe = false;
+
+  const checks: any[] = [];
+
+  const suggestions: string[] =
+    [];
 
   try {
 
     // SPF CHECK
     try {
 
-      const txtRecords = await dns.resolveTxt(domain);
+      const spfData =
+        await resolveDNS(
+          domain,
+          "TXT"
+        );
 
-      let hasSPF = false;
+      const answers =
+        spfData.Answer || [];
 
-      for (const record of txtRecords) {
-
-        const value = record.join("");
-
-        if (
-          value.toLowerCase().includes("v=spf1")
-        ) {
-          hasSPF = true;
-          break;
-        }
-
-      }
+      const hasSPF =
+        answers.some(
+          (a: any) =>
+            a.data &&
+            a.data
+              .toLowerCase()
+              .includes(
+                "v=spf1"
+              )
+        );
 
       if (hasSPF) {
 
         checks.push({
-          name: "SPF Record",
-          status: "Valid",
+          name:
+            "SPF Record",
+          status:
+            "Valid",
           success: true,
-          impact: "+15",
-          message: "SPF record detected",
+          impact:
+            "+15",
+          message:
+            "SPF record detected",
         });
 
       } else {
 
         score -= 15;
 
+        suggestions.push(
+          "Add a valid SPF record to improve email trust and deliverability."
+        );
+
         checks.push({
-          name: "SPF Record",
-          status: "Missing",
+          name:
+            "SPF Record",
+          status:
+            "Missing",
           success: false,
-          impact: "-15",
-          message: "No SPF record found",
+          impact:
+            "-15",
+          message:
+            "No SPF record found",
         });
 
       }
@@ -72,12 +109,20 @@ export async function GET(req: Request) {
 
       score -= 15;
 
+      suggestions.push(
+        "Add a valid SPF record to improve email trust and deliverability."
+      );
+
       checks.push({
-        name: "SPF Record",
-        status: "Missing",
+        name:
+          "SPF Record",
+        status:
+          "Missing",
         success: false,
-        impact: "-15",
-        message: "No SPF record found",
+        impact:
+          "-15",
+        message:
+          "No SPF record found",
       });
 
     }
@@ -85,45 +130,58 @@ export async function GET(req: Request) {
     // DMARC CHECK
     try {
 
-      const dmarcRecords = await dns.resolveTxt(
-        `_dmarc.${domain}`
-      );
+      const dmarcData =
+        await resolveDNS(
+          `_dmarc.${domain}`,
+          "TXT"
+        );
 
-      let hasDMARC = false;
+      const answers =
+        dmarcData.Answer || [];
 
-      for (const record of dmarcRecords) {
-
-        const value = record.join("");
-
-        if (
-          value.toLowerCase().includes("v=dmarc1")
-        ) {
-          hasDMARC = true;
-          break;
-        }
-
-      }
+      const hasDMARC =
+        answers.some(
+          (a: any) =>
+            a.data &&
+            a.data
+              .toLowerCase()
+              .includes(
+                "v=dmarc1"
+              )
+        );
 
       if (hasDMARC) {
 
         checks.push({
-          name: "DMARC Record",
-          status: "Valid",
+          name:
+            "DMARC Record",
+          status:
+            "Valid",
           success: true,
-          impact: "+20",
-          message: "DMARC policy detected",
+          impact:
+            "+20",
+          message:
+            "DMARC policy detected",
         });
 
       } else {
 
         score -= 20;
 
+        suggestions.push(
+          "Configure a DMARC policy to protect against spoofing and phishing."
+        );
+
         checks.push({
-          name: "DMARC Record",
-          status: "Missing",
+          name:
+            "DMARC Record",
+          status:
+            "Missing",
           success: false,
-          impact: "-20",
-          message: "No DMARC policy found",
+          impact:
+            "-20",
+          message:
+            "No DMARC policy found",
         });
 
       }
@@ -132,12 +190,20 @@ export async function GET(req: Request) {
 
       score -= 20;
 
+      suggestions.push(
+        "Configure a DMARC policy to protect against spoofing and phishing."
+      );
+
       checks.push({
-        name: "DMARC Record",
-        status: "Missing",
+        name:
+          "DMARC Record",
+        status:
+          "Missing",
         success: false,
-        impact: "-20",
-        message: "No DMARC policy found",
+        impact:
+          "-20",
+        message:
+          "No DMARC policy found",
       });
 
     }
@@ -145,28 +211,49 @@ export async function GET(req: Request) {
     // MX CHECK
     try {
 
-      const mx = await dns.resolveMx(domain);
+      const mxData =
+        await resolveDNS(
+          domain,
+          "MX"
+        );
 
-      if (mx && mx.length > 0) {
+      const answers =
+        mxData.Answer || [];
+
+      if (
+        answers.length > 0
+      ) {
 
         checks.push({
-          name: "MX Records",
-          status: "Configured",
+          name:
+            "MX Records",
+          status:
+            "Configured",
           success: true,
-          impact: "+10",
-          message: "Mail servers detected",
+          impact:
+            "+10",
+          message:
+            "Mail servers detected",
         });
 
       } else {
 
         score -= 10;
 
+        suggestions.push(
+          "Configure MX records so email services can properly receive mail."
+        );
+
         checks.push({
-          name: "MX Records",
-          status: "Missing",
+          name:
+            "MX Records",
+          status:
+            "Missing",
           success: false,
-          impact: "-10",
-          message: "No MX records found",
+          impact:
+            "-10",
+          message:
+            "No MX records found",
         });
 
       }
@@ -175,64 +262,89 @@ export async function GET(req: Request) {
 
       score -= 10;
 
+      suggestions.push(
+        "Configure MX records so email services can properly receive mail."
+      );
+
       checks.push({
-        name: "MX Records",
-        status: "Missing",
+        name:
+          "MX Records",
+        status:
+          "Missing",
         success: false,
-        impact: "-10",
-        message: "No MX records found",
+        impact:
+          "-10",
+        message:
+          "No MX records found",
       });
 
     }
 
     // GOOGLE SAFE BROWSING
-    let unsafe = false;
-
     try {
 
-      const response = await fetch(
-        `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${GOOGLE_API_KEY}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            client: {
-              clientId: "smtpdoctor",
-              clientVersion: "1.0",
+      const response =
+        await fetch(
+          `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${GOOGLE_API_KEY}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
             },
-            threatInfo: {
-              threatTypes: [
-                "MALWARE",
-                "SOCIAL_ENGINEERING",
-                "UNWANTED_SOFTWARE",
-              ],
-              platformTypes: ["ANY_PLATFORM"],
-              threatEntryTypes: ["URL"],
-              threatEntries: [
-                {
-                  url: `http://${domain}`,
-                },
-              ],
-            },
-          }),
-        }
-      );
+            body: JSON.stringify({
+              client: {
+                clientId:
+                  "smtpdoctor",
+                clientVersion:
+                  "1.0",
+              },
+              threatInfo: {
+                threatTypes: [
+                  "MALWARE",
+                  "SOCIAL_ENGINEERING",
+                  "UNWANTED_SOFTWARE",
+                ],
+                platformTypes: [
+                  "ANY_PLATFORM",
+                ],
+                threatEntryTypes: [
+                  "URL",
+                ],
+                threatEntries: [
+                  {
+                    url:
+                      `http://${domain}`,
+                  },
+                ],
+              },
+            }),
+          }
+        );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
-      if (data.matches) {
+      if (
+        data.matches
+      ) {
 
         unsafe = true;
 
         score -= 50;
 
+        suggestions.push(
+          "Google Safe Browsing flagged this domain. Scan the website for malware, phishing pages, or malicious scripts."
+        );
+
         checks.push({
-          name: "Google Safe Browsing",
-          status: "Dangerous",
+          name:
+            "Google Safe Browsing",
+          status:
+            "Dangerous",
           success: false,
-          impact: "-50",
+          impact:
+            "-50",
           message:
             "Google flagged this domain as unsafe",
         });
@@ -240,10 +352,13 @@ export async function GET(req: Request) {
       } else {
 
         checks.push({
-          name: "Google Safe Browsing",
-          status: "Clean",
+          name:
+            "Google Safe Browsing",
+          status:
+            "Clean",
           success: true,
-          impact: "+0",
+          impact:
+            "+0",
           message:
             "No malware or phishing detected",
         });
@@ -253,10 +368,13 @@ export async function GET(req: Request) {
     } catch {
 
       checks.push({
-        name: "Google Safe Browsing",
-        status: "Unavailable",
+        name:
+          "Google Safe Browsing",
+        status:
+          "Unavailable",
         success: false,
-        impact: "0",
+        impact:
+          "0",
         message:
           "Unable to query Google Safe Browsing",
       });
@@ -264,29 +382,43 @@ export async function GET(req: Request) {
     }
 
     // SUSPICIOUS KEYWORDS
-    const suspiciousWords = [
-      "spam",
-      "hack",
-      "phish",
-      "fake",
-      "scam",
-    ];
+    const suspiciousWords =
+      [
+        "spam",
+        "hack",
+        "phish",
+        "fake",
+        "scam",
+      ];
 
-    const lower = domain.toLowerCase();
+    const suspicious =
+      suspiciousWords.some(
+        (w) =>
+          domain
+            .toLowerCase()
+            .includes(
+              w
+            )
+      );
 
-    const suspicious = suspiciousWords.some((w) =>
-      lower.includes(w)
-    );
-
-    if (suspicious) {
+    if (
+      suspicious
+    ) {
 
       score -= 20;
 
+      suggestions.push(
+        "Domain contains suspicious keywords often associated with spam or phishing."
+      );
+
       checks.push({
-        name: "Suspicious Keywords",
-        status: "Detected",
+        name:
+          "Suspicious Keywords",
+        status:
+          "Detected",
         success: false,
-        impact: "-20",
+        impact:
+          "-20",
         message:
           "Domain contains suspicious wording",
       });
@@ -294,10 +426,13 @@ export async function GET(req: Request) {
     } else {
 
       checks.push({
-        name: "Suspicious Keywords",
-        status: "Clean",
+        name:
+          "Suspicious Keywords",
+        status:
+          "Clean",
         success: true,
-        impact: "+0",
+        impact:
+          "+0",
         message:
           "No suspicious keywords detected",
       });
@@ -305,14 +440,37 @@ export async function GET(req: Request) {
     }
 
     // FINAL STATUS
-    let overallStatus = "Excellent";
+    let overallStatus =
+      "Excellent";
 
-    if (score < 90) overallStatus = "Good";
-    if (score < 75) overallStatus = "Average";
-    if (score < 50) overallStatus = "Poor";
-    if (score < 25) overallStatus = "Dangerous";
+    if (
+      score < 90
+    )
+      overallStatus =
+        "Good";
 
-    if (score < 0) score = 0;
+    if (
+      score < 75
+    )
+      overallStatus =
+        "Average";
+
+    if (
+      score < 50
+    )
+      overallStatus =
+        "Poor";
+
+    if (
+      score < 25
+    )
+      overallStatus =
+        "Dangerous";
+
+    if (
+      score < 0
+    )
+      score = 0;
 
     return NextResponse.json({
       domain,
@@ -320,16 +478,22 @@ export async function GET(req: Request) {
       score,
       unsafe,
       checks,
+      suggestions,
     });
 
-  } catch (error: any) {
+  } catch (
+    error: any
+  ) {
 
     return NextResponse.json(
       {
-        error: error.message || "Lookup failed",
+        error:
+          error.message ||
+          "Lookup failed",
       },
       { status: 500 }
     );
 
   }
+
 }
