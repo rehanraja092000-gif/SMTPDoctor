@@ -17,6 +17,7 @@ export default function Home() {
     { name: "TXT Record Lookup", href: "/tools/txt-checker" },
     { name: "DNS Propagation Checker", href: "/tools/propagation-checker" },
     { name: "AXFR Checker", href: "/tools/axfr-checker" },
+    { name: "Domain Reputation Checker", href: "/tools/reputation-checker" },
   ];
 
   return (
