@@ -1,100 +1,87 @@
 "use client";
 
 import { useState } from "react";
+import ToolShell from "../../components/ToolShell";
+import ResultHeader from "../../components/ResultHeader";
+import CopyButton from "../../components/CopyButton";
 
-export default function DKIMChecker() {
-  const [domain, setDomain] = useState("");
+interface DKIMRecord {
+  selector: string;
+  host: string;
+  record: string;
+  found: boolean;
+}
+
+interface DKIMResult {
+  domain: string;
+  status: string;
+  count: number;
+  records: DKIMRecord[];
+  error?: string;
+}
+
+export default function DKIMCheckerPage() {
   const [selector, setSelector] = useState("");
-  const [result, setResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-
-  const checkDKIM = async () => {
-    if (!domain) return;
-
-    setLoading(true);
-    setResult(null);
-
-    try {
-      const query = selector
-        ? `/api/dkim-check?domain=${domain}&selector=${selector}`
-        : `/api/dkim-check?domain=${domain}`;
-
-      const res = await fetch(query);
-      const data = await res.json();
-      setResult(data);
-    } catch {
-      setResult({ status: "Lookup failed" });
-    }
-
-    setLoading(false);
-  };
 
   return (
-    <main className="min-h-screen bg-white px-6 py-20">
-      <div className="mx-auto max-w-5xl text-center">
-        <h1 className="text-6xl font-bold text-slate-900">
-          Free DKIM Checker Tool
-        </h1>
-
-        <p className="mt-6 text-2xl text-slate-600">
-          Enter a domain and instantly validate its DKIM record.
-        </p>
-
-        <p className="mt-2 text-lg text-slate-500">
-          Leave selector blank to auto-scan all common DKIM selectors.
-        </p>
-
-        <div className="mt-12 flex flex-col items-center gap-4">
+    <ToolShell<DKIMResult>
+      tag="AUTH-02 / EMAIL AUTHENTICATION"
+      title="DKIM Checker"
+      description="Scan for common DKIM selectors, or check a specific selector you already know."
+      inputLabel="Domain to check"
+      inputPlaceholder="example.com"
+      buttonLabel="Check DKIM"
+      buildUrl={(domain) =>
+        `/api/dkim-check?domain=${encodeURIComponent(domain)}${
+          selector.trim() ? `&selector=${encodeURIComponent(selector.trim())}` : ""
+        }`
+      }
+      extraControls={({ disabled }) => (
+        <div className="flex items-center gap-2">
+          <label htmlFor="dkim-selector" className="text-xs font-mono text-[var(--text-muted)] shrink-0">
+            Selector (optional)
+          </label>
           <input
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            placeholder="example.com"
-            className="w-full max-w-2xl rounded-2xl border px-6 py-4 text-xl outline-none"
-          />
-
-          <input
+            id="dkim-selector"
             value={selector}
             onChange={(e) => setSelector(e.target.value)}
-            placeholder="Custom Selector (optional) — default / selector1 / google"
-            className="w-full max-w-2xl rounded-2xl border px-6 py-4 text-xl outline-none"
+            disabled={disabled}
+            placeholder="e.g. google, selector1, k1"
+            autoComplete="off"
+            spellCheck={false}
+            className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 font-mono text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--accent-dim)]"
           />
-
-          <button
-            onClick={checkDKIM}
-            className="rounded-2xl bg-black px-10 py-4 text-xl text-white"
-          >
-            {loading ? "Checking..." : "Check DKIM"}
-          </button>
         </div>
-
-        {result && (
-          <div className="mt-14 rounded-3xl border p-8 text-left text-xl">
-            <p>
-              <strong>Domain:</strong> {result.domain}
+      )}
+      renderResult={(data) => (
+        <div>
+          <ResultHeader
+            target={data.domain}
+            status={data.status}
+            tone={data.count > 0 ? "success" : "danger"}
+          />
+          {data.count > 0 ? (
+            <ul className="divide-y divide-[var(--border)]">
+              {data.records.map((r, i) => (
+                <li key={i} className="py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-mono text-[var(--accent)]">{r.selector}._domainkey</p>
+                    <CopyButton value={r.record} label={`${r.selector} DKIM record`} />
+                  </div>
+                  <p className="mt-1 font-mono text-xs text-[var(--text-secondary)] break-all">
+                    {r.record}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-[var(--text-secondary)] mt-1">
+              No DKIM record was found for the common selectors scanned. If you
+              know the exact selector your provider uses, enter it above.
             </p>
-
-            <p className="mt-4">
-              <strong>Status:</strong> {result.status}
-            </p>
-
-            {result.count && (
-              <p className="mt-4">
-                <strong>Selectors Found:</strong> {result.count}
-              </p>
-            )}
-
-            {result.records?.map((r: any, i: number) => (
-              <div key={i} className="mt-6 rounded-xl bg-slate-50 p-4">
-                <p><strong>Selector:</strong> {r.selector}</p>
-                <p><strong>Host:</strong> {r.host}</p>
-                <p className="break-all mt-2">
-                  <strong>Record:</strong> {r.record}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </main>
+          )}
+        </div>
+      )}
+    />
   );
 }

@@ -1,84 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import ToolShell from "../../components/ToolShell";
+import ResultHeader from "../../components/ResultHeader";
+import RecordTable from "../../components/RecordTable";
 
-export default function CNAMEChecker() {
-  const [domain, setDomain] = useState("");
-  const [result, setResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+interface CNAMEResult {
+  domain: string;
+  status: string;
+  count: number;
+  records: string[];
+  error?: string;
+}
 
-  const checkCNAME = async () => {
-    if (!domain) return;
-
-    setLoading(true);
-    setResult(null);
-
-    try {
-      const res = await fetch(
-        `/api/cname-check?domain=${encodeURIComponent(domain)}`
-      );
-
-      const data = await res.json();
-      setResult(data);
-    } catch {
-      setResult({ status: "Lookup failed" });
-    }
-
-    setLoading(false);
-  };
-
+export default function CNAMECheckerPage() {
   return (
-    <main className="min-h-screen bg-white px-6 py-20">
-      <div className="mx-auto max-w-5xl text-center">
-        <h1 className="text-6xl font-bold text-slate-900">
-          Free CNAME Lookup Tool
-        </h1>
-
-        <p className="mt-6 text-2xl text-slate-600">
-          Find canonical name (CNAME) records for any subdomain.
-        </p>
-
-        <div className="mt-12 flex justify-center gap-4">
-          <input
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            placeholder="www.example.com"
-            className="w-full max-w-2xl rounded-2xl border px-6 py-4 text-xl outline-none"
+    <ToolShell<CNAMEResult>
+      tag="DNS-04 / DNS RECORDS"
+      title="CNAME Lookup"
+      description="Check the canonical name (alias) record for a subdomain."
+      inputLabel="Hostname to check"
+      inputPlaceholder="www.example.com"
+      buttonLabel="Look up CNAME"
+      buildUrl={(domain) => `/api/cname-check?domain=${encodeURIComponent(domain)}`}
+      renderResult={(data) => (
+        <div>
+          <ResultHeader
+            target={data.domain}
+            status={data.status}
+            tone={data.count > 0 ? "success" : "neutral"}
           />
-
-          <button
-            onClick={checkCNAME}
-            className="rounded-2xl bg-black px-10 py-4 text-xl text-white"
-          >
-            {loading ? "Checking..." : "Check CNAME"}
-          </button>
+          <RecordTable records={data.records} emptyLabel="No CNAME record — this may be a root record instead" />
         </div>
-
-        {result && (
-          <div className="mt-14 rounded-3xl border p-8 text-left text-xl">
-            <p>
-              <strong>Domain:</strong> {result.domain}
-            </p>
-
-            <p className="mt-4">
-              <strong>Status:</strong> {result.status}
-            </p>
-
-            <p className="mt-4">
-              <strong>CNAME Records:</strong> {result.count}
-            </p>
-
-            {result.records?.map((record: string, i: number) => (
-              <div
-                key={i}
-                className="mt-5 rounded-xl bg-slate-50 border p-5 break-all"
-              >
-                {record}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </main>
+      )}
+    />
   );
 }

@@ -1,60 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import ToolShell from "../../components/ToolShell";
+import ResultHeader from "../../components/ResultHeader";
 
-export default function SPFChecker() {
-  const [domain, setDomain] = useState("");
-  const [result, setResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+interface SPFResult {
+  domain: string;
+  status: string;
+  record: string | null;
+  error?: string;
+}
 
-  const checkSPF = async () => {
-    if (!domain) return;
-
-    setLoading(true);
-    setResult(null);
-
-    const res = await fetch(`/api/spf-check?domain=${domain}`);
-    const data = await res.json();
-
-    setResult(data);
-    setLoading(false);
-  };
-
+export default function SPFCheckerPage() {
   return (
-    <main className="min-h-screen bg-white text-gray-900 px-6 py-16">
-      <div className="mx-auto max-w-4xl">
-        <h1 className="text-4xl font-bold">SPF Checker</h1>
-        <p className="mt-3 text-gray-600">
-          Validate SPF records instantly.
-        </p>
-
-        <div className="mt-8 flex gap-3">
-          <input
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            placeholder="example.com"
-            className="flex-1 rounded-xl border px-4 py-3"
+    <ToolShell<SPFResult>
+      tag="AUTH-01 / EMAIL AUTHENTICATION"
+      title="SPF Checker"
+      description="Look up a domain's SPF record and confirm it's published correctly."
+      inputLabel="Domain to check"
+      inputPlaceholder="example.com"
+      buttonLabel="Check SPF"
+      buildUrl={(domain) => `/api/spf-check?domain=${encodeURIComponent(domain)}`}
+      renderResult={(data) => (
+        <div>
+          <ResultHeader
+            target={data.domain}
+            status={data.status}
+            tone={data.record ? "success" : "danger"}
           />
-          <button
-            onClick={checkSPF}
-            className="rounded-xl bg-black px-6 py-3 text-white"
-          >
-            {loading ? "Checking..." : "Check SPF"}
-          </button>
+          {data.record ? (
+            <p className="font-mono text-sm text-[var(--text-primary)] break-all bg-[var(--bg-raised)] rounded-lg p-3 mt-1">
+              {data.record}
+            </p>
+          ) : (
+            <p className="text-sm text-[var(--text-secondary)] mt-1">
+              No SPF record was found. Without one, receiving mail servers can&apos;t
+              verify which servers are allowed to send mail for this domain.
+            </p>
+          )}
         </div>
-
-        {result && (
-          <div className="mt-8 rounded-2xl border bg-gray-50 p-6">
-            <p><strong>Domain:</strong> {result.domain}</p>
-            <p><strong>Status:</strong> {result.status}</p>
-            {result.record && (
-              <p className="mt-2 break-all">
-                <strong>Record:</strong> {result.record}
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-    </main>
+      )}
+    />
   );
 }

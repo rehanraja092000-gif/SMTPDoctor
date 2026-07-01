@@ -1,476 +1,215 @@
 import { NextResponse } from "next/server";
+import { isValidDomain, normalizeDomain } from "../../../lib/validation";
+import { errorInfo } from "../../../lib/errors";
 
-const GOOGLE_API_KEY =
-  process.env.GOOGLE_SAFE_BROWSING_API_KEY;
+const GOOGLE_API_KEY = process.env.GOOGLE_SAFE_BROWSING_API_KEY;
 
-async function resolveDNS(
-  name: string,
-  type: string
-) {
-  const url =
-    `https://dns.google/resolve?name=${name}&type=${type}`;
-
+async function resolveDNS(name: string, type: string) {
+  const url = `https://dns.google/resolve?name=${encodeURIComponent(name)}&type=${type}`;
   const res = await fetch(url);
-
   return res.json();
 }
 
+interface CheckResult {
+  name: string;
+  status: string;
+  success: boolean;
+  impact: string;
+  message: string;
+}
+
+interface DnsAnswer {
+  data?: string;
+}
+
+function pushCheck(
+  checks: CheckResult[],
+  suggestions: string[],
+  scoreRef: { value: number },
+  opts: {
+    name: string;
+    passed: boolean;
+    passLabel: string;
+    failLabel: string;
+    passMessage: string;
+    failMessage: string;
+    penalty: number;
+    suggestion?: string;
+  }
+) {
+  if (opts.passed) {
+    checks.push({
+      name: opts.name,
+      status: opts.passLabel,
+      success: true,
+      impact: "+0",
+      message: opts.passMessage,
+    });
+  } else {
+    scoreRef.value -= opts.penalty;
+    if (opts.suggestion) suggestions.push(opts.suggestion);
+    checks.push({
+      name: opts.name,
+      status: opts.failLabel,
+      success: false,
+      impact: `-${opts.penalty}`,
+      message: opts.failMessage,
+    });
+  }
+}
+
 export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const rawDomain = searchParams.get("domain");
 
-  const { searchParams } =
-    new URL(req.url);
-
-  const domain =
-    searchParams.get("domain");
-
-  if (!domain) {
-
-    return NextResponse.json(
-      {
-        error:
-          "Domain is required",
-      },
-      { status: 400 }
-    );
-
+  if (!rawDomain) {
+    return NextResponse.json({ error: "Domain is required" }, { status: 400 });
   }
 
-  let score = 100;
+  const domain = normalizeDomain(rawDomain);
 
+  if (!isValidDomain(domain)) {
+    return NextResponse.json({ error: "Enter a valid domain, e.g. example.com" }, { status: 400 });
+  }
+
+  const scoreRef = { value: 100 };
   let unsafe = false;
-
-  const checks: any[] = [];
-
-  const suggestions: string[] =
-    [];
+  const checks: CheckResult[] = [];
+  const suggestions: string[] = [];
 
   try {
-
-    // SPF CHECK
+    let hasSPF = false;
     try {
-
-      const spfData =
-        await resolveDNS(
-          domain,
-          "TXT"
-        );
-
-      const answers =
-        spfData.Answer || [];
-
-      const hasSPF =
-        answers.some(
-          (a: any) =>
-            a.data &&
-            a.data
-              .toLowerCase()
-              .includes(
-                "v=spf1"
-              )
-        );
-
-      if (hasSPF) {
-
-        checks.push({
-          name:
-            "SPF Record",
-          status:
-            "Valid",
-          success: true,
-          impact:
-            "+15",
-          message:
-            "SPF record detected",
-        });
-
-      } else {
-
-        score -= 15;
-
-        suggestions.push(
-          "Add a valid SPF record to improve email trust and deliverability."
-        );
-
-        checks.push({
-          name:
-            "SPF Record",
-          status:
-            "Missing",
-          success: false,
-          impact:
-            "-15",
-          message:
-            "No SPF record found",
-        });
-
-      }
-
-    } catch {
-
-      score -= 15;
-
-      suggestions.push(
-        "Add a valid SPF record to improve email trust and deliverability."
+      const spfData = await resolveDNS(domain, "TXT");
+      hasSPF = (spfData.Answer || []).some(
+        (a: DnsAnswer) => a.data && a.data.toLowerCase().includes("v=spf1")
       );
+    } catch {}
+    pushCheck(checks, suggestions, scoreRef, {
+      name: "SPF Record",
+      passed: hasSPF,
+      passLabel: "Valid",
+      failLabel: "Missing",
+      passMessage: "SPF record detected",
+      failMessage: "No SPF record found",
+      penalty: 15,
+      suggestion: "Add a valid SPF record to improve email trust and deliverability.",
+    });
 
-      checks.push({
-        name:
-          "SPF Record",
-        status:
-          "Missing",
-        success: false,
-        impact:
-          "-15",
-        message:
-          "No SPF record found",
-      });
-
-    }
-
-    // DMARC CHECK
+    let hasDMARC = false;
     try {
-
-      const dmarcData =
-        await resolveDNS(
-          `_dmarc.${domain}`,
-          "TXT"
-        );
-
-      const answers =
-        dmarcData.Answer || [];
-
-      const hasDMARC =
-        answers.some(
-          (a: any) =>
-            a.data &&
-            a.data
-              .toLowerCase()
-              .includes(
-                "v=dmarc1"
-              )
-        );
-
-      if (hasDMARC) {
-
-        checks.push({
-          name:
-            "DMARC Record",
-          status:
-            "Valid",
-          success: true,
-          impact:
-            "+20",
-          message:
-            "DMARC policy detected",
-        });
-
-      } else {
-
-        score -= 20;
-
-        suggestions.push(
-          "Configure a DMARC policy to protect against spoofing and phishing."
-        );
-
-        checks.push({
-          name:
-            "DMARC Record",
-          status:
-            "Missing",
-          success: false,
-          impact:
-            "-20",
-          message:
-            "No DMARC policy found",
-        });
-
-      }
-
-    } catch {
-
-      score -= 20;
-
-      suggestions.push(
-        "Configure a DMARC policy to protect against spoofing and phishing."
+      const dmarcData = await resolveDNS(`_dmarc.${domain}`, "TXT");
+      hasDMARC = (dmarcData.Answer || []).some(
+        (a: DnsAnswer) => a.data && a.data.toLowerCase().includes("v=dmarc1")
       );
+    } catch {}
+    pushCheck(checks, suggestions, scoreRef, {
+      name: "DMARC Record",
+      passed: hasDMARC,
+      passLabel: "Valid",
+      failLabel: "Missing",
+      passMessage: "DMARC policy detected",
+      failMessage: "No DMARC policy found",
+      penalty: 20,
+      suggestion: "Configure a DMARC policy to protect against spoofing and phishing.",
+    });
 
-      checks.push({
-        name:
-          "DMARC Record",
-        status:
-          "Missing",
-        success: false,
-        impact:
-          "-20",
-        message:
-          "No DMARC policy found",
-      });
-
-    }
-
-    // MX CHECK
+    let hasMX = false;
     try {
+      const mxData = await resolveDNS(domain, "MX");
+      hasMX = (mxData.Answer || []).length > 0;
+    } catch {}
+    pushCheck(checks, suggestions, scoreRef, {
+      name: "MX Records",
+      passed: hasMX,
+      passLabel: "Configured",
+      failLabel: "Missing",
+      passMessage: "Mail servers detected",
+      failMessage: "No MX records found",
+      penalty: 10,
+      suggestion: "Configure MX records so email services can properly receive mail.",
+    });
 
-      const mxData =
-        await resolveDNS(
-          domain,
-          "MX"
-        );
-
-      const answers =
-        mxData.Answer || [];
-
-      if (
-        answers.length > 0
-      ) {
-
-        checks.push({
-          name:
-            "MX Records",
-          status:
-            "Configured",
-          success: true,
-          impact:
-            "+10",
-          message:
-            "Mail servers detected",
-        });
-
-      } else {
-
-        score -= 10;
-
-        suggestions.push(
-          "Configure MX records so email services can properly receive mail."
-        );
-
-        checks.push({
-          name:
-            "MX Records",
-          status:
-            "Missing",
-          success: false,
-          impact:
-            "-10",
-          message:
-            "No MX records found",
-        });
-
-      }
-
-    } catch {
-
-      score -= 10;
-
-      suggestions.push(
-        "Configure MX records so email services can properly receive mail."
-      );
-
-      checks.push({
-        name:
-          "MX Records",
-        status:
-          "Missing",
-        success: false,
-        impact:
-          "-10",
-        message:
-          "No MX records found",
-      });
-
-    }
-
-    // GOOGLE SAFE BROWSING
-    try {
-
-      const response =
-        await fetch(
+    if (GOOGLE_API_KEY) {
+      try {
+        const response = await fetch(
           `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${GOOGLE_API_KEY}`,
           {
             method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              client: {
-                clientId:
-                  "smtpdoctor",
-                clientVersion:
-                  "1.0",
-              },
+              client: { clientId: "smtpdoctor", clientVersion: "1.0" },
               threatInfo: {
-                threatTypes: [
-                  "MALWARE",
-                  "SOCIAL_ENGINEERING",
-                  "UNWANTED_SOFTWARE",
-                ],
-                platformTypes: [
-                  "ANY_PLATFORM",
-                ],
-                threatEntryTypes: [
-                  "URL",
-                ],
-                threatEntries: [
-                  {
-                    url:
-                      `http://${domain}`,
-                  },
-                ],
+                threatTypes: ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE"],
+                platformTypes: ["ANY_PLATFORM"],
+                threatEntryTypes: ["URL"],
+                threatEntries: [{ url: `http://${domain}` }],
               },
             }),
           }
         );
 
-      const data =
-        await response.json();
+        const data = await response.json();
 
-      if (
-        data.matches
-      ) {
-
-        unsafe = true;
-
-        score -= 50;
-
-        suggestions.push(
-          "Google Safe Browsing flagged this domain. Scan the website for malware, phishing pages, or malicious scripts."
-        );
-
+        if (data.matches) {
+          unsafe = true;
+          scoreRef.value -= 50;
+          suggestions.push(
+            "Google Safe Browsing flagged this domain. Scan the website for malware, phishing pages, or malicious scripts."
+          );
+          checks.push({
+            name: "Google Safe Browsing",
+            status: "Dangerous",
+            success: false,
+            impact: "-50",
+            message: "Google flagged this domain as unsafe",
+          });
+        } else {
+          checks.push({
+            name: "Google Safe Browsing",
+            status: "Clean",
+            success: true,
+            impact: "+0",
+            message: "No malware or phishing detected",
+          });
+        }
+      } catch {
         checks.push({
-          name:
-            "Google Safe Browsing",
-          status:
-            "Dangerous",
+          name: "Google Safe Browsing",
+          status: "Unavailable",
           success: false,
-          impact:
-            "-50",
-          message:
-            "Google flagged this domain as unsafe",
+          impact: "0",
+          message: "Unable to query Google Safe Browsing",
         });
-
-      } else {
-
-        checks.push({
-          name:
-            "Google Safe Browsing",
-          status:
-            "Clean",
-          success: true,
-          impact:
-            "+0",
-          message:
-            "No malware or phishing detected",
-        });
-
       }
-
-    } catch {
-
-      checks.push({
-        name:
-          "Google Safe Browsing",
-        status:
-          "Unavailable",
-        success: false,
-        impact:
-          "0",
-        message:
-          "Unable to query Google Safe Browsing",
-      });
-
-    }
-
-    // SUSPICIOUS KEYWORDS
-    const suspiciousWords =
-      [
-        "spam",
-        "hack",
-        "phish",
-        "fake",
-        "scam",
-      ];
-
-    const suspicious =
-      suspiciousWords.some(
-        (w) =>
-          domain
-            .toLowerCase()
-            .includes(
-              w
-            )
-      );
-
-    if (
-      suspicious
-    ) {
-
-      score -= 20;
-
-      suggestions.push(
-        "Domain contains suspicious keywords often associated with spam or phishing."
-      );
-
-      checks.push({
-        name:
-          "Suspicious Keywords",
-        status:
-          "Detected",
-        success: false,
-        impact:
-          "-20",
-        message:
-          "Domain contains suspicious wording",
-      });
-
     } else {
-
       checks.push({
-        name:
-          "Suspicious Keywords",
-        status:
-          "Clean",
-        success: true,
-        impact:
-          "+0",
-        message:
-          "No suspicious keywords detected",
+        name: "Google Safe Browsing",
+        status: "Not configured",
+        success: false,
+        impact: "0",
+        message: "Server is missing a Safe Browsing API key",
       });
-
     }
 
-    // FINAL STATUS
-    let overallStatus =
-      "Excellent";
+    const suspiciousWords = ["spam", "hack", "phish", "fake", "scam"];
+    const suspicious = suspiciousWords.some((w) => domain.includes(w));
+    checks.push({
+      name: "Suspicious Keywords",
+      status: suspicious ? "Detected" : "Clean",
+      success: !suspicious,
+      impact: "+0",
+      message: suspicious
+        ? "Domain name contains wording sometimes associated with spam — not a definitive signal on its own"
+        : "No suspicious keywords detected",
+    });
 
-    if (
-      score < 90
-    )
-      overallStatus =
-        "Good";
-
-    if (
-      score < 75
-    )
-      overallStatus =
-        "Average";
-
-    if (
-      score < 50
-    )
-      overallStatus =
-        "Poor";
-
-    if (
-      score < 25
-    )
-      overallStatus =
-        "Dangerous";
-
-    if (
-      score < 0
-    )
-      score = 0;
+    const score = Math.max(0, Math.min(100, scoreRef.value));
+    let overallStatus = "Excellent";
+    if (score < 90) overallStatus = "Good";
+    if (score < 75) overallStatus = "Average";
+    if (score < 50) overallStatus = "Poor";
+    if (score < 25) overallStatus = "Dangerous";
 
     return NextResponse.json({
       domain,
@@ -480,20 +219,11 @@ export async function GET(req: Request) {
       checks,
       suggestions,
     });
-
-  } catch (
-    error: any
-  ) {
-
+  } catch (error) {
+    const { message } = errorInfo(error);
     return NextResponse.json(
-      {
-        error:
-          error.message ||
-          "Lookup failed",
-      },
+      { error: message || "Lookup failed" },
       { status: 500 }
     );
-
   }
-
 }

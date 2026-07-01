@@ -1,24 +1,27 @@
 import { NextResponse } from "next/server";
 import { Resolver } from "node:dns/promises";
+import { isValidDomain, normalizeDomain } from "../../../lib/validation";
+import { errorInfo } from "../../../lib/errors";
 
 const resolver = new Resolver();
 resolver.setServers(["8.8.8.8", "1.1.1.1"]);
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
+  const raw = searchParams.get("domain");
 
-  const domain = searchParams.get("domain");
+  if (!raw) {
+    return NextResponse.json({ error: "Domain is required" }, { status: 400 });
+  }
 
-  if (!domain) {
-    return NextResponse.json(
-      { error: "Domain is required" },
-      { status: 400 }
-    );
+  const domain = normalizeDomain(raw);
+
+  if (!isValidDomain(domain)) {
+    return NextResponse.json({ error: "Enter a valid domain, e.g. example.com" }, { status: 400 });
   }
 
   try {
     const records = await resolver.resolveTxt(domain);
-
     const formatted = records.map((r) => r.join(""));
 
     return NextResponse.json({
@@ -27,11 +30,12 @@ export async function GET(req: Request) {
       count: formatted.length,
       records: formatted,
     });
-  } catch (error: any) {
+  } catch (error) {
+    const { code, message } = errorInfo(error);
     return NextResponse.json({
       domain,
       status: "Lookup failed",
-      error: error.code || error.message,
+      error: code || message,
       count: 0,
       records: [],
     });

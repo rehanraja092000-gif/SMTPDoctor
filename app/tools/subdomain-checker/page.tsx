@@ -1,99 +1,61 @@
 "use client";
 
-import { useState } from "react";
+import ToolShell from "../../components/ToolShell";
+import ResultHeader from "../../components/ResultHeader";
+import CopyButton from "../../components/CopyButton";
 
-export default function SubdomainChecker() {
-  const [domain, setDomain] = useState("");
-  const [result, setResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+interface SubdomainRecord {
+  subdomain: string;
+  found: boolean;
+  ips: string[];
+}
 
-  const scanSubdomains = async () => {
-    if (!domain) return;
+interface SubdomainResult {
+  domain: string;
+  status: string;
+  scanned: number;
+  count: number;
+  records: SubdomainRecord[];
+}
 
-    setLoading(true);
-    setResult(null);
-
-    try {
-      const res = await fetch(
-        `/api/subdomain-check?domain=${encodeURIComponent(domain)}`
-      );
-
-      const data = await res.json();
-      setResult(data);
-    } catch {
-      setResult({ status: "Scan failed" });
-    }
-
-    setLoading(false);
-  };
-
+export default function SubdomainCheckerPage() {
   return (
-    <main className="min-h-screen bg-white px-6 py-20">
-      <div className="mx-auto max-w-6xl text-center">
-        <h1 className="text-6xl font-bold text-slate-900">
-          Free Subdomain Scanner
-        </h1>
-
-        <p className="mt-6 text-2xl text-slate-600">
-          Discover common subdomains for any domain.
-        </p>
-
-        <div className="mt-12 flex justify-center gap-4">
-          <input
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            placeholder="example.com"
-            className="w-full max-w-2xl rounded-2xl border px-6 py-4 text-xl outline-none"
+    <ToolShell<SubdomainResult>
+      tag="DIAG-02 / DIAGNOSTICS"
+      title="Subdomain Scanner"
+      description="Scan a domain for commonly used subdomains like mail, vpn, cpanel, and staging environments."
+      inputLabel="Domain to scan"
+      inputPlaceholder="example.com"
+      buttonLabel="Scan subdomains"
+      buildUrl={(domain) => `/api/subdomain-check?domain=${encodeURIComponent(domain)}`}
+      renderResult={(data) => (
+        <div>
+          <ResultHeader
+            target={data.domain}
+            status={`${data.count} of ${data.scanned} found`}
+            tone={data.count > 0 ? "success" : "neutral"}
           />
-
-          <button
-            onClick={scanSubdomains}
-            className="rounded-2xl bg-black px-10 py-4 text-xl text-white"
-          >
-            {loading ? "Scanning..." : "Scan Subdomains"}
-          </button>
+          {data.count > 0 ? (
+            <ul className="divide-y divide-[var(--border)]">
+              {data.records.map((r, i) => (
+                <li key={i} className="flex items-center justify-between gap-3 py-3">
+                  <span className="text-sm font-mono text-[var(--text-primary)]">{r.subdomain}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono text-[var(--text-secondary)]">
+                      {r.ips.join(", ")}
+                    </span>
+                    <CopyButton value={r.subdomain} label={r.subdomain} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-[var(--text-secondary)] mt-1">
+              None of the commonly scanned subdomains resolved for this domain.
+            </p>
+          )}
         </div>
-
-        {result && (
-          <div className="mt-14 rounded-3xl border p-8 text-left text-xl">
-            <p>
-              <strong>Domain:</strong> {result.domain}
-            </p>
-
-            <p className="mt-4">
-              <strong>Status:</strong> {result.status}
-            </p>
-
-            <p className="mt-4">
-              <strong>Subdomains Found:</strong> {result.count}
-            </p>
-
-            {result.records?.map((record: any, i: number) => (
-              <div
-                key={i}
-                className="mt-5 rounded-xl bg-slate-50 border p-5"
-              >
-                <p className="break-all">
-                  <strong>Subdomain:</strong> {record.subdomain}
-                </p>
-
-                <div className="mt-3">
-                  <strong>IPs:</strong>
-
-                  {record.ips?.map((ip: string, j: number) => (
-                    <div
-                      key={j}
-                      className="mt-2 rounded-lg bg-white border p-3 break-all"
-                    >
-                      {ip}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </main>
+      )}
+    />
   );
 }

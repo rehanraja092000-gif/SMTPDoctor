@@ -1,181 +1,95 @@
 "use client";
 
 import { useState } from "react";
+import ToolShell from "../../components/ToolShell";
+import StatusBadge, { toneForBool } from "../../components/StatusBadge";
 
-export default function PropagationChecker() {
-  const [domain, setDomain] = useState("");
-  const [recordType, setRecordType] = useState("A");
-  const [result, setResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+interface ResolverResult {
+  resolver: string;
+  server: string;
+  success: boolean;
+  records: (string | number)[];
+  error?: string;
+}
 
-  const checkPropagation = async () => {
-    if (!domain) return;
+interface PropagationResult {
+  domain: string;
+  type: string;
+  results: ResolverResult[];
+}
 
-    setLoading(true);
-    setResult(null);
+const RECORD_TYPES = ["A", "AAAA", "MX", "TXT", "NS", "CNAME"];
 
-    try {
-      const res = await fetch(
-        `/api/propagation-check?domain=${encodeURIComponent(
-          domain
-        )}&type=${recordType}`
-      );
-
-      const data = await res.json();
-
-      setResult(data);
-    } catch {
-      setResult({
-        status: "Lookup failed",
-      });
-    }
-
-    setLoading(false);
-  };
-
-  const successfulResolvers =
-    result?.results?.filter((r: any) => r.success)?.length || 0;
-
-  const totalResolvers = result?.results?.length || 0;
+export default function PropagationCheckerPage() {
+  const [type, setType] = useState("A");
 
   return (
-    <main className="min-h-screen bg-white px-6 py-20">
-      <div className="mx-auto max-w-6xl">
-
-        <div className="text-center">
-          <h1 className="text-6xl font-bold text-slate-900">
-            DNS Propagation Checker
-          </h1>
-
-          <p className="mt-6 text-2xl text-slate-600">
-            Check DNS propagation across multiple public DNS resolvers.
-          </p>
-        </div>
-
-        <div className="mt-12 flex flex-col gap-4 md:flex-row md:justify-center">
-
-          <input
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            placeholder="example.com"
-            className="w-full max-w-2xl rounded-2xl border px-6 py-4 text-xl outline-none"
-          />
-
-          <select
-            value={recordType}
-            onChange={(e) => setRecordType(e.target.value)}
-            className="rounded-2xl border px-6 py-4 text-xl outline-none"
-          >
-            <option value="A">A</option>
-            <option value="AAAA">AAAA</option>
-            <option value="MX">MX</option>
-            <option value="TXT">TXT</option>
-            <option value="NS">NS</option>
-            <option value="CNAME">CNAME</option>
-          </select>
-
-          <button
-            onClick={checkPropagation}
-            className="rounded-2xl bg-black px-10 py-4 text-xl text-white"
-          >
-            {loading ? "Checking..." : "Check DNS"}
-          </button>
-
-        </div>
-
-        {result && (
-          <div className="mt-14 rounded-3xl border p-8">
-
-            <div className="mb-8 rounded-2xl border bg-slate-50 p-6">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-
-                <div>
-                  <p className="text-xl font-semibold text-slate-900">
-                    Domain: {result.domain}
-                  </p>
-
-                  <p className="mt-2 text-slate-600">
-                    Record Type: {recordType}
-                  </p>
-                </div>
-
-                <div>
-                  {successfulResolvers === totalResolvers ? (
-                    <span className="rounded-xl bg-green-100 px-5 py-3 text-lg font-semibold text-green-700">
-                      Fully Propagated ({successfulResolvers}/{totalResolvers})
-                    </span>
-                  ) : (
-                    <span className="rounded-xl bg-yellow-100 px-5 py-3 text-lg font-semibold text-yellow-700">
-                      Partial Propagation ({successfulResolvers}/{totalResolvers})
-                    </span>
-                  )}
-                </div>
-
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-6">
-
-              {result.results?.map((item: any, i: number) => (
-                <div
-                  key={i}
-                  className="rounded-2xl border bg-slate-50 p-6"
-                >
-                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-
-                    <div>
-                      <p className="text-2xl font-bold text-slate-900">
-                        {item.resolver}
-                      </p>
-
-                      <p className="mt-1 text-slate-500">
-                        {item.server}
-                      </p>
-                    </div>
-
-                    <div>
-                      {item.success ? (
-                        <span className="rounded-xl bg-green-100 px-4 py-2 text-lg font-semibold text-green-700">
-                          Propagated
-                        </span>
-                      ) : (
-                        <span className="rounded-xl bg-red-100 px-4 py-2 text-lg font-semibold text-red-700">
-                          Failed
-                        </span>
-                      )}
-                    </div>
-
-                  </div>
-
-                  <div className="mt-5">
-
-                    {item.records?.length > 0 ? (
-                      <div className="flex flex-wrap gap-3">
-                        {item.records.map(
-                          (record: string, j: number) => (
-                            <div
-                              key={j}
-                              className="rounded-xl border bg-white px-4 py-3 text-lg break-all"
-                            >
-                              {record}
-                            </div>
-                          )
-                        )}
-                      </div>
-                    ) : (
-                      <p className="text-lg text-slate-500">
-                        {item.error || "No records found"}
-                      </p>
-                    )}
-
-                  </div>
-                </div>
-              ))}
-
-            </div>
+    <ToolShell<PropagationResult>
+      tag="DIAG-01 / DIAGNOSTICS"
+      title="DNS Propagation Checker"
+      description="Compare a domain's answers across four public resolvers to see how fully a change has propagated."
+      inputLabel="Domain to check"
+      inputPlaceholder="example.com"
+      buttonLabel="Check propagation"
+      buildUrl={(domain) =>
+        `/api/propagation-check?domain=${encodeURIComponent(domain)}&type=${type}`
+      }
+      extraControls={({ disabled }) => (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-mono text-[var(--text-muted)]">Record type</span>
+          <div className="flex gap-1">
+            {RECORD_TYPES.map((t) => (
+              <button
+                key={t}
+                type="button"
+                disabled={disabled}
+                onClick={() => setType(t)}
+                aria-pressed={type === t}
+                className={`rounded-md px-2.5 py-1 text-xs font-mono border transition-colors ${
+                  type === t
+                    ? "bg-[var(--accent-soft)] text-[var(--accent)] border-[var(--accent-dim)]"
+                    : "text-[var(--text-secondary)] border-[var(--border)] hover:border-[var(--border-strong)]"
+                }`}
+              >
+                {t}
+              </button>
+            ))}
           </div>
-        )}
-      </div>
-    </main>
+        </div>
+      )}
+      renderResult={(data) => (
+        <div>
+          <div className="flex items-center justify-between pb-4 mb-1 border-b border-[var(--border)]">
+            <p className="font-mono text-sm text-[var(--text-primary)]">
+              {data.domain} <span className="text-[var(--text-muted)]">· {data.type}</span>
+            </p>
+          </div>
+          <ul className="divide-y divide-[var(--border)]">
+            {data.results.map((r, i) => (
+              <li key={i} className="py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-[var(--text-primary)]">{r.resolver}</p>
+                    <p className="text-xs font-mono text-[var(--text-muted)]">{r.server}</p>
+                  </div>
+                  <StatusBadge tone={toneForBool(r.success)}>
+                    {r.success ? "Resolved" : "No answer"}
+                  </StatusBadge>
+                </div>
+                {r.success && r.records.length > 0 && (
+                  <ul className="mt-2 space-y-1">
+                    {r.records.map((rec, j) => (
+                      <li key={j} className="text-xs font-mono text-[var(--text-secondary)] break-all">
+                        {String(rec)}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    />
   );
 }

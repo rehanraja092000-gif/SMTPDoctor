@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dns from "node:dns/promises";
 import net from "node:net";
+import { isValidDomain } from "../../../lib/validation";
 
 const BLACKLISTS = [
   "zen.spamhaus.org",
@@ -15,7 +16,6 @@ function reverseIP(ip: string) {
 
 async function resolveToIP(input: string) {
   if (net.isIP(input)) return input;
-
   try {
     const result = await dns.lookup(input);
     return result.address;
@@ -26,21 +26,24 @@ async function resolveToIP(input: string) {
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const target = searchParams.get("target");
+  const raw = searchParams.get("target");
 
-  if (!target) {
-    return NextResponse.json(
-      { error: "Target is required" },
-      { status: 400 }
-    );
+  if (!raw) {
+    return NextResponse.json({ error: "Target is required" }, { status: 400 });
+  }
+
+  const target = raw.trim();
+
+  if (!net.isIP(target) && !isValidDomain(target)) {
+    return NextResponse.json({ error: "Enter a valid domain or IP address" }, { status: 400 });
   }
 
   const ip = await resolveToIP(target);
 
-  if (!ip || !net.isIP(ip)) {
+  if (!ip || !net.isIP(ip) || !net.isIPv4(ip)) {
     return NextResponse.json({
       target,
-      status: "Invalid target",
+      status: ip && net.isIPv6(ip) ? "IPv6 targets are not yet supported for blacklist checks" : "Invalid target",
       results: [],
     });
   }
@@ -50,19 +53,11 @@ export async function GET(req: Request) {
 
   for (const blacklist of BLACKLISTS) {
     const query = `${reversed}.${blacklist}`;
-
     try {
       await dns.resolve(query, "A");
-
-      results.push({
-        blacklist,
-        listed: true,
-      });
+      results.push({ blacklist, listed: true });
     } catch {
-      results.push({
-        blacklist,
-        listed: false,
-      });
+      results.push({ blacklist, listed: false });
     }
   }
 
