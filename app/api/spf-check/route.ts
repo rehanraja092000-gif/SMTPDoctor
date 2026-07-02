@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
-import { Resolver } from "node:dns/promises";
+import { analyzeSpf } from "../../../lib/spfParser";
 import { isValidDomain, normalizeDomain } from "../../../lib/validation";
-import { errorInfo } from "../../../lib/errors";
-
-const resolver = new Resolver();
-resolver.setServers(["8.8.8.8", "1.1.1.1"]);
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -15,27 +11,17 @@ export async function GET(req: Request) {
   }
 
   const domain = normalizeDomain(raw);
-
   if (!isValidDomain(domain)) {
     return NextResponse.json({ error: "Enter a valid domain, e.g. example.com" }, { status: 400 });
   }
 
-  try {
-    const txtRecords = await resolver.resolveTxt(domain);
-    const flatRecords = txtRecords.flat().map(String);
-    const spfRecord = flatRecords.find((r) => r.startsWith("v=spf1"));
+  const analysis = await analyzeSpf(domain);
 
-    return NextResponse.json({
-      domain,
-      status: spfRecord ? "SPF record found" : "No SPF record found",
-      record: spfRecord || null,
-    });
-  } catch (error) {
-    const { code, message } = errorInfo(error);
-    return NextResponse.json({
-      domain,
-      status: "DNS lookup failed",
-      error: code || message,
-    });
-  }
+  return NextResponse.json({
+    domain,
+    status: analysis.found
+      ? analysis.valid ? "SPF record valid" : "SPF record has issues"
+      : "No SPF record found",
+    ...analysis,
+  });
 }

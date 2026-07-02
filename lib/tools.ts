@@ -12,7 +12,7 @@ export interface ToolMeta {
   category: CategoryKey;
 }
 
-export type CategoryKey = "auth" | "dns" | "diagnostics" | "security";
+export type CategoryKey = "auth" | "dns" | "diagnostics" | "security" | "tls" | "web";
 
 export interface CategoryMeta {
   key: CategoryKey;
@@ -25,6 +25,8 @@ export const CATEGORIES: CategoryMeta[] = [
   { key: "dns", label: "DNS Records", short: "DNS" },
   { key: "diagnostics", label: "Diagnostics", short: "Diagnostics" },
   { key: "security", label: "Security", short: "Security" },
+  { key: "tls", label: "TLS & Certificates", short: "TLS" },
+  { key: "web", label: "Website Security", short: "Web" },
 ];
 
 export const TOOLS: ToolMeta[] = [
@@ -47,6 +49,22 @@ export const TOOLS: ToolMeta[] = [
   { tag: "SEC-02", slug: "axfr-checker", name: "AXFR Checker", short: "Test for exposed zone transfers", category: "security" },
   { tag: "SEC-03", slug: "port-checker", name: "SMTP Port Tester", short: "Probe mail and web ports", category: "security" },
   { tag: "SEC-04", slug: "reputation-checker", name: "Domain Reputation", short: "Composite deliverability + safety score", category: "security" },
+  { tag: "SEC-05", slug: "dnssec-checker", name: "DNSSEC Checker", short: "Verify DNS is cryptographically signed", category: "security" },
+  { tag: "SEC-06", slug: "openrelay-checker", name: "Open Relay Test", short: "Detect abusable mail relays", category: "security" },
+
+  { tag: "MAIL-01", slug: "mtasts-checker", name: "MTA-STS Checker", short: "Enforce TLS for inbound mail", category: "auth" },
+  { tag: "MAIL-02", slug: "tlsrpt-checker", name: "TLS-RPT Checker", short: "TLS reporting policy", category: "auth" },
+  { tag: "MAIL-03", slug: "bimi-checker", name: "BIMI Checker", short: "Brand logo in inbox", category: "auth" },
+  { tag: "MAIL-04", slug: "smtp-banner-checker", name: "SMTP Banner", short: "Read a mail server's greeting", category: "diagnostics" },
+  { tag: "MAIL-05", slug: "starttls-checker", name: "STARTTLS Checker", short: "Confirm mail encryption support", category: "diagnostics" },
+
+  { tag: "TLS-01", slug: "ssl-checker", name: "SSL / TLS Certificate", short: "Certificate validity and expiry", category: "tls" },
+  { tag: "TLS-02", slug: "caa-checker", name: "CAA Checker", short: "Which CAs may issue certificates", category: "tls" },
+
+  { tag: "WEB-01", slug: "headers-checker", name: "Security Headers", short: "Audit HTTP security headers", category: "web" },
+  { tag: "WEB-02", slug: "hsts-checker", name: "HSTS Checker", short: "HTTPS enforcement policy", category: "web" },
+
+  { tag: "DIAG-04", slug: "domain-age-checker", name: "Domain Age", short: "Registration date and age", category: "diagnostics" },
 ];
 
 export function toolsByCategory(key: CategoryKey): ToolMeta[] {
@@ -61,6 +79,6 @@ export const SITE = {
   name: "SMTPDoctor",
   url: "https://smtpdoctor.com",
   developer: "RehaVerse Studio",
-  developerUrl: "https://rehaversestudio.com",
+  developerUrl: "",
   tagline: "Free email deliverability & DNS diagnostics",
 };

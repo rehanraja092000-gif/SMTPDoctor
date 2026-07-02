@@ -8,6 +8,13 @@ const BLACKLISTS = [
   "bl.spamcop.net",
   "b.barracudacentral.org",
   "dnsbl.sorbs.net",
+  "spam.dnsbl.sorbs.net",
+  "cbl.abuseat.org",
+  "dnsbl-1.uceprotect.net",
+  "psbl.surriel.com",
+  "db.wpbl.info",
+  "bl.mailspike.net",
+  "dnsbl.dronebl.org",
 ];
 
 function reverseIP(ip: string) {

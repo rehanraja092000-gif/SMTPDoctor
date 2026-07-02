@@ -26,22 +26,9 @@ export default function Footer() {
               <p className="text-xs font-mono text-[var(--text-muted)] uppercase tracking-wider">
                 Designed & built by
               </p>
-              <a
-                href={SITE.developerUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-1 inline-flex items-center gap-1.5 font-display font-semibold text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors"
-              >
+              <p className="mt-1 font-display font-semibold text-[var(--text-primary)]">
                 {SITE.developer}
-                <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-                  <path
-                    d="M3 9L9 3M5 3h4v4"
-                    stroke="currentColor"
-                    strokeWidth="1.3"
-                    fill="none"
-                  />
-                </svg>
-              </a>
+              </p>
               <p className="mt-1.5 text-xs text-[var(--text-secondary)] leading-relaxed">
                 Independent studio building fast, privacy-respecting web tools
                 and SaaS products. Available for freelance and collaboration.

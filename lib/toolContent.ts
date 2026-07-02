@@ -486,6 +486,167 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
   },
 };
 
+const NEW_CONTENT: Record<string, ToolContent> = {
+  "dnssec-checker": {
+    intro:
+      "DNSSEC adds cryptographic signatures to your DNS records so resolvers can verify the answers they receive haven't been forged. Without it, attackers can poison DNS caches and redirect your visitors or mail. This tool checks whether a domain has a working DNSSEC chain of trust.",
+    what: [
+      { heading: "What this tool checks", body: "It queries the domain's DS and DNSKEY records and checks the authenticated-data flag from a validating resolver, confirming whether the zone is signed and the chain of trust is intact." },
+      { heading: "Why DNSSEC matters", body: "DNSSEC prevents DNS spoofing and cache-poisoning attacks that can silently redirect traffic or intercept email. It's the foundation for other technologies like DANE." },
+    ],
+    faq: [
+      { q: "What is DNSSEC?", a: "DNSSEC (DNS Security Extensions) cryptographically signs DNS records so resolvers can verify answers are authentic and unmodified, protecting against spoofing and cache poisoning." },
+      { q: "How do I enable DNSSEC?", a: "Enable signing at your DNS provider, then publish the resulting DS record at your registrar. Both steps are required for the chain of trust to validate." },
+      { q: "Does DNSSEC slow down DNS?", a: "The overhead is minimal. Signature validation adds a small amount of processing, but for virtually all sites the security benefit far outweighs the negligible performance cost." },
+    ],
+  },
+  "openrelay-checker": {
+    intro:
+      "An open relay is a mail server that forwards email from any sender to any recipient, regardless of whether either belongs to it. Spammers actively scan for open relays to launder their traffic. This tool safely tests whether a server relays external mail — without ever sending a message.",
+    what: [
+      { heading: "What this tool checks", body: "It opens an SMTP session and attempts to set an external sender and external recipient, then reads whether the server accepts the RCPT command. It stops before any mail is sent." },
+      { heading: "Why open relays are dangerous", body: "An open relay lets anyone send mail through your server, which quickly gets your IP blacklisted and can implicate you in spam campaigns. Relaying should be restricted to authenticated users only." },
+    ],
+    faq: [
+      { q: "What is an open mail relay?", a: "An open relay is an SMTP server that accepts and forwards mail from any sender to any recipient without authentication. It's a serious misconfiguration that spammers exploit." },
+      { q: "How do I fix an open relay?", a: "Configure your mail server to only relay for authenticated users or trusted local networks. Every modern mail server supports this; check your relay and authentication settings." },
+      { q: "Does this tool send spam?", a: "No. It only tests whether the server would accept an external relay attempt by reading the response to the RCPT command, and never transmits an actual message." },
+    ],
+  },
+  "mtasts-checker": {
+    intro:
+      "MTA-STS lets your domain tell other mail servers that they must use TLS encryption when delivering mail to you, and refuse delivery if a secure connection can't be established. This tool verifies both parts of a valid MTA-STS setup: the DNS record and the HTTPS-hosted policy file.",
+    what: [
+      { heading: "What this tool checks", body: "It looks up the _mta-sts TXT record and fetches the policy file from the well-known HTTPS location, reporting the enforcement mode (enforce, testing, or none)." },
+      { heading: "Why use MTA-STS", body: "Plain SMTP can be downgraded to unencrypted delivery by an attacker. MTA-STS closes that gap by requiring TLS, protecting inbound mail from interception." },
+    ],
+    faq: [
+      { q: "What is MTA-STS?", a: "MTA-STS (Mail Transfer Agent Strict Transport Security) is a standard that forces sending servers to use TLS when delivering mail to your domain, preventing downgrade attacks." },
+      { q: "What does MTA-STS require?", a: "Two things: a _mta-sts DNS TXT record, and a policy file served over HTTPS at mta-sts.yourdomain.com/.well-known/mta-sts.txt. Both must be present and valid." },
+      { q: "What is enforce vs testing mode?", a: "In testing mode, TLS failures are reported but mail still flows. In enforce mode, mail that can't be delivered securely is rejected. Start in testing, then move to enforce." },
+    ],
+  },
+  "tlsrpt-checker": {
+    intro:
+      "TLS-RPT gives you visibility into how well TLS encryption is working for mail sent to your domain. When a sending server can't establish a secure connection, TLS-RPT asks it to send you a report. This tool checks whether your domain publishes a valid TLS-RPT record.",
+    what: [
+      { heading: "What this tool checks", body: "It queries the _smtp._tls TXT record and extracts the reporting address where TLS failure reports are sent." },
+      { heading: "Why pair it with MTA-STS", body: "MTA-STS enforces TLS; TLS-RPT tells you when enforcement causes problems. Together they let you deploy strict TLS safely, with feedback if legitimate mail starts failing." },
+    ],
+    faq: [
+      { q: "What is TLS-RPT?", a: "TLS-RPT (SMTP TLS Reporting) is a standard where receiving servers send you daily reports about TLS connection successes and failures for mail to your domain." },
+      { q: "Do I need TLS-RPT?", a: "It's highly recommended alongside MTA-STS. Without it, you have no visibility into TLS problems that could be silently blocking or downgrading your mail." },
+      { q: "Where do TLS-RPT reports go?", a: "To the address in the rua tag of your record, which can be an email address or an HTTPS endpoint. Many domains point it at a monitoring service that aggregates the reports." },
+    ],
+  },
+  "bimi-checker": {
+    intro:
+      "BIMI displays your verified brand logo next to authenticated emails in inboxes that support it, boosting recognition and trust. It only works once you have DMARC at enforcement. This tool checks your BIMI record and whether it includes the certificate providers increasingly require.",
+    what: [
+      { heading: "What this tool checks", body: "It looks up the BIMI TXT record at the selected selector, extracting the logo URL and any VMC (Verified Mark Certificate) reference." },
+      { heading: "BIMI prerequisites", body: "BIMI requires DMARC set to quarantine or reject, an SVG logo hosted over HTTPS, and — for Gmail and others — a VMC proving you own the trademark on the logo." },
+    ],
+    faq: [
+      { q: "What is BIMI?", a: "BIMI (Brand Indicators for Message Identification) is a standard that shows your brand logo beside authenticated email in supporting inboxes like Gmail, Apple Mail, and Yahoo." },
+      { q: "What do I need for BIMI to work?", a: "Enforced DMARC (quarantine or reject), an SVG Tiny P/S logo served over HTTPS, a BIMI DNS record, and usually a Verified Mark Certificate (VMC) for major providers." },
+      { q: "Why isn't my BIMI logo showing?", a: "The most common reasons are DMARC not being at enforcement, a missing VMC, or a logo that doesn't meet the strict SVG profile. All three must be correct." },
+    ],
+  },
+  "smtp-banner-checker": {
+    intro:
+      "The SMTP banner is the first line a mail server sends when you connect — it identifies the server and, after an EHLO, lists the features it supports. This tool connects to a mail server and shows its banner and advertised capabilities.",
+    what: [
+      { heading: "What this tool checks", body: "It connects on the chosen port, reads the greeting banner, sends EHLO, and lists the capabilities the server advertises, such as STARTTLS, SIZE, and AUTH methods." },
+      { heading: "Why inspect the banner", body: "The banner and capability list reveal whether a server supports encryption, its software and version, and its configuration — useful for diagnosing delivery and security issues." },
+    ],
+    faq: [
+      { q: "What is an SMTP banner?", a: "It's the greeting line a mail server sends immediately on connection, usually starting with code 220, identifying the server. After EHLO it also lists supported capabilities." },
+      { q: "Which SMTP port should I check?", a: "Port 25 for server-to-server mail, 587 for authenticated submission, and 465 for implicit TLS. Check the port relevant to how you connect to the server." },
+      { q: "What can the banner tell me?", a: "It reveals the server software, whether STARTTLS is offered, accepted authentication methods, message size limits, and other capabilities that affect deliverability." },
+    ],
+  },
+  "starttls-checker": {
+    intro:
+      "STARTTLS upgrades a plain SMTP connection to an encrypted one, keeping email private in transit. A mail server that doesn't offer it may be sending and receiving mail in the clear. This tool checks whether a server advertises STARTTLS support.",
+    what: [
+      { heading: "What this tool checks", body: "It connects to the mail server, issues EHLO, and checks whether STARTTLS appears in the advertised capabilities." },
+      { heading: "Why STARTTLS matters", body: "Without STARTTLS, mail between servers can travel unencrypted and be read or modified in transit. Nearly all reputable mail servers support it today." },
+    ],
+    faq: [
+      { q: "What is STARTTLS?", a: "STARTTLS is an SMTP command that upgrades an existing plaintext connection to an encrypted TLS connection, protecting email in transit between mail servers." },
+      { q: "Is STARTTLS the same as SSL/TLS?", a: "It achieves TLS encryption but starts from a plaintext connection and upgrades it. Implicit TLS (port 465) encrypts from the very first byte instead." },
+      { q: "What if a server doesn't support STARTTLS?", a: "Mail to or from it may be unencrypted and exposed. Enable STARTTLS in your mail server configuration; every modern mail server supports it." },
+    ],
+  },
+  "ssl-checker": {
+    intro:
+      "Your TLS certificate is what makes the padlock appear and encrypts traffic to your site. An expired or misconfigured certificate breaks trust and can take a site offline in browsers. This tool inspects a site's certificate: issuer, validity window, expiry countdown, and covered hostnames.",
+    what: [
+      { heading: "What this tool checks", body: "It establishes a TLS connection, reads the presented certificate, and reports the subject, issuer, valid-from and valid-to dates, days remaining, negotiated protocol, and every hostname in the certificate." },
+      { heading: "Watch the expiry", body: "Certificates expire, and an expired certificate produces a hard browser warning. This tool highlights certificates that are expired or expiring within three weeks so you can renew in time." },
+    ],
+    faq: [
+      { q: "How long are SSL certificates valid?", a: "Publicly-trusted TLS certificates are now capped at around 398 days, and many are issued for 90 days. Automated renewal, such as with Let's Encrypt, is the norm." },
+      { q: "What does 'certificate expired' mean?", a: "The certificate's validity end date has passed, so browsers no longer trust it and show a security warning. Renew and reinstall the certificate to fix it." },
+      { q: "What are SAN hostnames?", a: "The Subject Alternative Name field lists every hostname a certificate is valid for. A certificate only secures the exact names listed there, including any wildcards." },
+    ],
+  },
+  "caa-checker": {
+    intro:
+      "CAA records let you specify exactly which certificate authorities are permitted to issue TLS certificates for your domain. Without them, any CA can — which widens your exposure to mis-issuance. This tool lists a domain's CAA records.",
+    what: [
+      { heading: "What this tool checks", body: "It resolves the domain's CAA records and shows each issue, issuewild, and iodef tag, revealing which CAs are authorized and where violation reports are sent." },
+      { heading: "Why set CAA records", body: "CAA records reduce the risk of an unauthorized or compromised CA issuing a certificate for your domain. They're a simple, high-value DNS hardening step." },
+    ],
+    faq: [
+      { q: "What is a CAA record?", a: "A Certification Authority Authorization record specifies which certificate authorities are allowed to issue certificates for your domain. CAs are required to honor it." },
+      { q: "What happens without CAA records?", a: "Any publicly-trusted CA may issue certificates for your domain. Adding CAA records restricts issuance to the CAs you choose, reducing mis-issuance risk." },
+      { q: "Do CAA records affect existing certificates?", a: "No. They only govern new issuance. Existing certificates keep working, but future requests from unauthorized CAs will be refused." },
+    ],
+  },
+  "headers-checker": {
+    intro:
+      "HTTP security headers instruct browsers to enforce protections against common web attacks — cross-site scripting, clickjacking, protocol downgrade, and more. Missing them leaves easy openings. This tool audits which security headers a site sends.",
+    what: [
+      { heading: "What this tool checks", body: "It requests the site over HTTPS and inspects the response for the key security headers: Strict-Transport-Security, Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, and Permissions-Policy." },
+      { heading: "Why they matter", body: "Each header closes off a class of attack. Content-Security-Policy limits XSS, X-Frame-Options stops clickjacking, and HSTS enforces HTTPS. Together they meaningfully harden a site." },
+    ],
+    faq: [
+      { q: "What are HTTP security headers?", a: "They're response headers that tell the browser to enforce security protections, such as blocking framing, restricting script sources, and requiring HTTPS." },
+      { q: "Which security header is most important?", a: "Content-Security-Policy and Strict-Transport-Security offer the broadest protection, guarding against XSS and protocol-downgrade attacks respectively. Ideally you deploy all of them." },
+      { q: "How do I add security headers?", a: "Set them in your web server or application configuration, or at your CDN. Test changes carefully — a strict Content-Security-Policy can break legitimate resources if misconfigured." },
+    ],
+  },
+  "hsts-checker": {
+    intro:
+      "HSTS tells browsers to only ever connect to your site over HTTPS, even if a user types http:// or clicks an insecure link. It closes the window for downgrade and cookie-hijacking attacks. This tool checks a site's HSTS policy and its strength.",
+    what: [
+      { heading: "What this tool checks", body: "It reads the Strict-Transport-Security header and reports the max-age duration, whether includeSubDomains is set, and whether the domain is flagged for preloading." },
+      { heading: "Reading the policy", body: "A strong policy has a max-age of at least six months, includeSubDomains to cover every subdomain, and optionally preload for inclusion in browsers' built-in HSTS lists." },
+    ],
+    faq: [
+      { q: "What is HSTS?", a: "HTTP Strict Transport Security is a header that forces browsers to use HTTPS for your site, preventing downgrade attacks and blocking insecure connections entirely." },
+      { q: "What is a good HSTS max-age?", a: "At least 15552000 seconds (six months), and often a year or more. A longer max-age means browsers remember to enforce HTTPS for that duration." },
+      { q: "What does HSTS preload do?", a: "Preloading adds your domain to a list built into browsers, so HTTPS is enforced even on a user's very first visit. It requires includeSubDomains and a long max-age." },
+    ],
+  },
+  "domain-age-checker": {
+    intro:
+      "A domain's age is a useful trust signal: freshly registered domains are disproportionately associated with spam and abuse, while long-established domains carry more reputation. This tool pulls a domain's registration, update, and expiry dates from WHOIS.",
+    what: [
+      { heading: "What this tool checks", body: "It performs a WHOIS lookup and extracts the creation date, last-updated date, and expiry date, then calculates the domain's age." },
+      { heading: "Why age matters", body: "Mail and security systems weigh domain age when assessing trust. A domain under 90 days old often faces extra scrutiny, so newly registered domains should warm up sending gradually." },
+    ],
+    faq: [
+      { q: "Why does domain age matter for email?", a: "Spam filters treat brand-new domains with suspicion because abusers register domains in bulk. Older domains with consistent history are trusted more, improving deliverability." },
+      { q: "Where does the age come from?", a: "From the domain's WHOIS creation date. This tool queries WHOIS and calculates the elapsed time since registration." },
+      { q: "Can I see a domain's expiry date?", a: "Yes, when the registrar publishes it in WHOIS. This tool shows the expiry date alongside the creation and last-updated dates." },
+    ],
+  },
+};
+
+Object.assign(TOOL_CONTENT, NEW_CONTENT);
+
 export function getToolContent(slug: string): ToolContent | undefined {
   return TOOL_CONTENT[slug];
 }
