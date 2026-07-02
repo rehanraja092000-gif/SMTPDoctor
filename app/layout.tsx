@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import Header from "./components/Header";
+import ToolNav from "./components/ToolNav";
 import Footer from "./components/Footer";
 import "./globals.css";
 
@@ -74,6 +75,7 @@ export default function RootLayout({
           Skip to content
         </a>
         <Header />
+        <ToolNav />
         <main id="main-content" className="flex-1">
           {children}
         </main>

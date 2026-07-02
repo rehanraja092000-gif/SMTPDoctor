@@ -134,13 +134,26 @@ export default function ToolShell<T = unknown>({
         )}
 
         {loading && !error && (
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-6 text-sm text-[var(--text-secondary)] font-mono">
-            Querying nameservers…
+          <div className="scan-line relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-6">
+            <div className="flex items-center gap-3 text-sm text-[var(--text-secondary)] font-mono">
+              <span className="inline-flex gap-1" aria-hidden="true">
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] status-dot" />
+                <span
+                  className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] status-dot"
+                  style={{ animationDelay: "0.3s" }}
+                />
+                <span
+                  className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] status-dot"
+                  style={{ animationDelay: "0.6s" }}
+                />
+              </span>
+              Querying resolvers…
+            </div>
           </div>
         )}
 
         {result && !loading && (
-          <div className="relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
+          <div className="animate-result relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
             {renderResult(result)}
           </div>
         )}

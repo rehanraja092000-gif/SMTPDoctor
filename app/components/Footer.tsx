@@ -1,69 +1,112 @@
 import Link from "next/link";
-
-const categories = [
-  {
-    label: "Email authentication",
-    links: [
-      { name: "SPF Checker", href: "/tools/spf-checker" },
-      { name: "DKIM Checker", href: "/tools/dkim-checker" },
-      { name: "DMARC Checker", href: "/tools/dmarc-checker" },
-    ],
-  },
-  {
-    label: "DNS tools",
-    links: [
-      { name: "MX Lookup", href: "/tools/mx-checker" },
-      { name: "DNS Propagation", href: "/tools/propagation-checker" },
-      { name: "Subdomain Scanner", href: "/tools/subdomain-checker" },
-    ],
-  },
-  {
-    label: "Security",
-    links: [
-      { name: "Blacklist Checker", href: "/tools/blacklist-checker" },
-      { name: "AXFR Checker", href: "/tools/axfr-checker" },
-      { name: "Port Tester", href: "/tools/port-checker" },
-    ],
-  },
-];
+import { CATEGORIES, toolsByCategory, SITE } from "../../lib/tools";
 
 export default function Footer() {
+  const year = new Date().getFullYear();
+
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--bg-raised)] mt-24">
-      <div className="mx-auto max-w-6xl px-6 py-12 grid gap-10 sm:grid-cols-4">
-        <div>
-          <p className="font-display font-semibold text-[var(--text-primary)]">
-            SMTPDoctor
-          </p>
-          <p className="mt-2 text-sm text-[var(--text-secondary)] max-w-[22ch]">
-            Free diagnostics for email deliverability and DNS health.
-          </p>
-        </div>
+      <div className="mx-auto max-w-6xl px-6 py-14">
+        <div className="grid gap-10 lg:grid-cols-[1.4fr_2fr_1.4fr]">
+          {/* Brand + developer */}
+          <div>
+            <p className="font-display font-semibold text-lg text-[var(--text-primary)] flex items-center gap-2">
+              <span className="text-[var(--accent)] font-mono" aria-hidden="true">
+                [&nbsp;•&nbsp;]
+              </span>
+              {SITE.name}
+            </p>
+            <p className="mt-3 text-sm text-[var(--text-secondary)] max-w-[32ch] leading-relaxed">
+              A free, no-signup toolkit for diagnosing email deliverability, DNS
+              health, and domain security. 16 tools that run directly against
+              live DNS and mail infrastructure.
+            </p>
 
-        {categories.map((cat) => (
-          <div key={cat.label}>
+            <div className="mt-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+              <p className="text-xs font-mono text-[var(--text-muted)] uppercase tracking-wider">
+                Designed & built by
+              </p>
+              <a
+                href={SITE.developerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 inline-flex items-center gap-1.5 font-display font-semibold text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors"
+              >
+                {SITE.developer}
+                <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+                  <path
+                    d="M3 9L9 3M5 3h4v4"
+                    stroke="currentColor"
+                    strokeWidth="1.3"
+                    fill="none"
+                  />
+                </svg>
+              </a>
+              <p className="mt-1.5 text-xs text-[var(--text-secondary)] leading-relaxed">
+                Independent studio building fast, privacy-respecting web tools
+                and SaaS products. Available for freelance and collaboration.
+              </p>
+            </div>
+          </div>
+
+          {/* Tool catalog */}
+          <div className="grid gap-8 sm:grid-cols-2">
+            {CATEGORIES.map((cat) => (
+              <div key={cat.key}>
+                <p className="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)]">
+                  {cat.label}
+                </p>
+                <ul className="mt-3 space-y-2">
+                  {toolsByCategory(cat.key).map((tool) => (
+                    <li key={tool.slug}>
+                      <Link
+                        href={`/tools/${tool.slug}`}
+                        className="text-sm text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
+                      >
+                        {tool.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          {/* Resources */}
+          <div>
             <p className="text-xs font-mono uppercase tracking-wider text-[var(--text-muted)]">
-              {cat.label}
+              Resources
             </p>
             <ul className="mt-3 space-y-2">
-              {cat.links.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
+              <li>
+                <Link href="/" className="text-sm text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors">
+                  All tools
+                </Link>
+              </li>
+              <li>
+                <Link href="/tools/reputation-checker" className="text-sm text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors">
+                  Full reputation scan
+                </Link>
+              </li>
+              <li>
+                <Link href="/tools/propagation-checker" className="text-sm text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors">
+                  DNS propagation
+                </Link>
+              </li>
             </ul>
           </div>
-        ))}
+        </div>
       </div>
 
       <div className="border-t border-[var(--border)]">
-        <div className="mx-auto max-w-6xl px-6 py-4 text-xs text-[var(--text-muted)] font-mono">
-          Results are provided for diagnostic purposes and may not reflect every mail provider&apos;s exact behavior.
+        <div className="mx-auto max-w-6xl px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <p className="text-xs text-[var(--text-muted)] font-mono">
+            © {year} {SITE.name} · Built by {SITE.developer}
+          </p>
+          <p className="text-xs text-[var(--text-muted)] max-w-[52ch] sm:text-right">
+            Results are for diagnostic purposes and may not reflect every mail
+            provider&apos;s exact behavior.
+          </p>
         </div>
       </div>
     </footer>

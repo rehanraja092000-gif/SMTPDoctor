@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import ToolContent from "../../components/ToolContent";
 
 export const metadata: Metadata = {
   title: "AXFR Checker",
@@ -11,5 +12,10 @@ export const metadata: Metadata = {
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      {children}
+      <ToolContent slug="axfr-checker" />
+    </>
+  );
 }
