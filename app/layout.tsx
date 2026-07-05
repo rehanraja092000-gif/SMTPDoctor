@@ -44,12 +44,21 @@ export const metadata: Metadata = {
     description:
       "Free SPF, DKIM, DMARC, DNS, and email security diagnostics. No signup required.",
     url: siteUrl,
+    images: [
+      {
+        url: "/brand/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "SMTPDoctor — free email deliverability and DNS diagnostic tools",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "SMTPDoctor — Free Email Deliverability & DNS Diagnostic Tools",
     description:
       "Free SPF, DKIM, DMARC, DNS, and email security diagnostics. No signup required.",
+    images: ["/brand/og-image.png"],
   },
   robots: {
     index: true,

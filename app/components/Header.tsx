@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Header() {
   return (
@@ -6,11 +7,16 @@ export default function Header() {
       <div className="mx-auto max-w-6xl px-6 h-14 flex items-center justify-between">
         <Link
           href="/"
-          className="font-display font-semibold text-lg tracking-tight text-[var(--text-primary)] flex items-center gap-2"
+          className="font-display font-semibold text-lg tracking-tight text-[var(--text-primary)] flex items-center gap-2.5"
         >
-          <span className="text-[var(--accent)] font-mono" aria-hidden="true">
-            [&nbsp;•&nbsp;]
-          </span>
+          <Image
+            src="/brand/icon.png"
+            alt="SMTPDoctor logo"
+            width={28}
+            height={28}
+            priority
+            className="h-7 w-7"
+          />
           SMTPDoctor
         </Link>
 

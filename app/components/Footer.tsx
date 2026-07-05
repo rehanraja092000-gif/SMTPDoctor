@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { CATEGORIES, toolsByCategory, SITE } from "../../lib/tools";
 
 export default function Footer() {
@@ -10,10 +11,14 @@ export default function Footer() {
         <div className="grid gap-10 lg:grid-cols-[1.4fr_2fr_1.4fr]">
           {/* Brand + developer */}
           <div>
-            <p className="font-display font-semibold text-lg text-[var(--text-primary)] flex items-center gap-2">
-              <span className="text-[var(--accent)] font-mono" aria-hidden="true">
-                [&nbsp;•&nbsp;]
-              </span>
+            <p className="font-display font-semibold text-lg text-[var(--text-primary)] flex items-center gap-2.5">
+              <Image
+                src="/brand/icon.png"
+                alt="SMTPDoctor logo"
+                width={28}
+                height={28}
+                className="h-7 w-7"
+              />
               {SITE.name}
             </p>
             <p className="mt-3 text-sm text-[var(--text-secondary)] max-w-[32ch] leading-relaxed">
