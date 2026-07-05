@@ -10,7 +10,7 @@ export default function Page() {
   const [port, setPort] = useState(25);
   return (
     <ToolShell<Result>
-      tag="MAIL-04 / DIAGNOSTICS"
+      tag="DIAGNOSTICS"
       title="SMTP Banner Check"
       description="Connect to a mail server and read the greeting banner it sends, plus the capabilities it advertises in response to EHLO."
       inputLabel="Mail server host" inputPlaceholder="mail.example.com" buttonLabel="Read banner"

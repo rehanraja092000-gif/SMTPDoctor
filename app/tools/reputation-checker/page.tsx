@@ -24,7 +24,7 @@ interface ReputationResult {
 export default function ReputationCheckerPage() {
   return (
     <ToolShell<ReputationResult>
-      tag="SEC-04 / SECURITY"
+      tag="SECURITY"
       title="Domain Reputation Checker"
       description="A weighted score that grades the quality of your SPF, DKIM, DMARC, MX, DNSSEC, and threat status — not just whether records exist — with prioritized fixes."
       inputLabel="Domain to check"

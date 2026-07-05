@@ -25,7 +25,7 @@ const FRIENDLY_KEYS: Record<string, string> = {
 export default function WhoisCheckerPage() {
   return (
     <ToolShell<WhoisResult>
-      tag="DIAG-03 / DIAGNOSTICS"
+      tag="DIAGNOSTICS"
       title="WHOIS Lookup"
       description="Look up registrar and registration details for any domain."
       inputLabel="Domain to check"

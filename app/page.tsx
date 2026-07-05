@@ -86,10 +86,7 @@ export default function Home() {
                   href={`/tools/${tool.slug}`}
                   className="group relative rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 hover:border-[var(--accent-dim)] hover:bg-[var(--surface-hover)] hover:-translate-y-0.5 transition-all"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[11px] text-[var(--text-muted)]">
-                      {tool.tag}
-                    </span>
+                  <div className="flex items-center justify-end">
                     <span
                       className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] status-dot"
                       aria-hidden="true"

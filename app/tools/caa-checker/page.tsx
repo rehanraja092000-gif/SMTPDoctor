@@ -8,7 +8,7 @@ interface Result { domain: string; status: string; hasPolicy: boolean; records: 
 export default function Page() {
   return (
     <ToolShell<Result>
-      tag="TLS-02 / TLS & CERTIFICATES"
+      tag="TLS & CERTIFICATES"
       title="CAA Checker"
       description="Check a domain's CAA records, which control exactly which certificate authorities are allowed to issue TLS certificates for it."
       inputLabel="Domain to check" inputPlaceholder="example.com" buttonLabel="Check CAA"

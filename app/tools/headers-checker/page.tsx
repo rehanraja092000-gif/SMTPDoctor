@@ -9,7 +9,7 @@ interface Result { domain: string; status: string; presentCount: number; total: 
 export default function Page() {
   return (
     <ToolShell<Result>
-      tag="WEB-01 / WEBSITE SECURITY"
+      tag="WEBSITE SECURITY"
       title="Security Headers Checker"
       description="Audit a website's HTTP response headers for the security protections that guard against XSS, clickjacking, and protocol downgrade attacks."
       inputLabel="Domain to check" inputPlaceholder="example.com" buttonLabel="Scan headers"

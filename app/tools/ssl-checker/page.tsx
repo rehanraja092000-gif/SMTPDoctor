@@ -13,7 +13,7 @@ const fmt = (iso: string) => new Date(iso).toLocaleDateString(undefined, { year:
 export default function Page() {
   return (
     <ToolShell<Result>
-      tag="TLS-01 / TLS & CERTIFICATES"
+      tag="TLS & CERTIFICATES"
       title="SSL / TLS Certificate Checker"
       description="Inspect a website's TLS certificate: issuer, validity dates, days until expiry, protocol version, and every hostname it covers."
       inputLabel="Domain to check" inputPlaceholder="example.com" buttonLabel="Check certificate"

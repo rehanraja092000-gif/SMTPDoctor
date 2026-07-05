@@ -25,7 +25,7 @@ export default function PropagationCheckerPage() {
 
   return (
     <ToolShell<PropagationResult>
-      tag="DIAG-01 / DIAGNOSTICS"
+      tag="DIAGNOSTICS"
       title="DNS Propagation Checker"
       description="Compare a domain's answers across four public resolvers to see how fully a change has propagated."
       inputLabel="Domain to check"

@@ -10,7 +10,7 @@ export default function Page() {
   const [port, setPort] = useState(25);
   return (
     <ToolShell<Result>
-      tag="SEC-06 / SECURITY"
+      tag="SECURITY"
       title="Open Relay Test"
       description="Test whether a mail server will relay mail from an external sender to an external recipient — the open-relay misconfiguration that spammers hunt for and abuse."
       inputLabel="Mail server host" inputPlaceholder="mail.example.com" buttonLabel="Test relay"

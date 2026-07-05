@@ -10,7 +10,7 @@ interface Result {
 export default function Page() {
   return (
     <ToolShell<Result>
-      tag="SEC-05 / SECURITY"
+      tag="SECURITY"
       title="DNSSEC Checker"
       description="Check whether a domain is protected by DNSSEC, which cryptographically signs DNS records to prevent spoofing and cache poisoning."
       inputLabel="Domain to check" inputPlaceholder="example.com" buttonLabel="Check DNSSEC"

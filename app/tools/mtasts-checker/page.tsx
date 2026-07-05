@@ -10,7 +10,7 @@ interface Result {
 export default function Page() {
   return (
     <ToolShell<Result>
-      tag="MAIL-01 / EMAIL AUTHENTICATION"
+      tag="EMAIL AUTHENTICATION"
       title="MTA-STS Checker"
       description="Check a domain's MTA-STS setup, which forces sending servers to use TLS when delivering mail to you — both the DNS record and the HTTPS policy file."
       inputLabel="Domain to check" inputPlaceholder="example.com" buttonLabel="Check MTA-STS"

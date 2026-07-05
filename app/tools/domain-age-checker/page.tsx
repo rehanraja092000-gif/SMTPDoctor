@@ -12,7 +12,7 @@ const fmt = (iso: string | null) => iso ? new Date(iso).toLocaleDateString(undef
 export default function Page() {
   return (
     <ToolShell<Result>
-      tag="DIAG-04 / DIAGNOSTICS"
+      tag="DIAGNOSTICS"
       title="Domain Age Checker"
       description="Find when a domain was first registered, when it was last updated, and when it expires — useful for assessing trust and reputation."
       inputLabel="Domain to check" inputPlaceholder="example.com" buttonLabel="Check age"

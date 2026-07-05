@@ -20,7 +20,7 @@ interface MXResult {
 export default function MXCheckerPage() {
   return (
     <ToolShell<MXResult>
-      tag="DNS-01 / DNS RECORDS"
+      tag="DNS RECORDS"
       title="MX Lookup"
       description="Find the mail exchanger records and delivery priority for any domain."
       inputLabel="Domain to check"

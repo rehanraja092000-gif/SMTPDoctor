@@ -15,7 +15,7 @@ interface CNAMEResult {
 export default function CNAMECheckerPage() {
   return (
     <ToolShell<CNAMEResult>
-      tag="DNS-04 / DNS RECORDS"
+      tag="DNS RECORDS"
       title="CNAME Lookup"
       description="Check the canonical name (alias) record for a subdomain."
       inputLabel="Hostname to check"

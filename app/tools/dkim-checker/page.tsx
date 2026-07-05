@@ -25,7 +25,7 @@ export default function DKIMCheckerPage() {
 
   return (
     <ToolShell<DKIMResult>
-      tag="AUTH-02 / EMAIL AUTHENTICATION"
+      tag="EMAIL AUTHENTICATION"
       title="DKIM Checker"
       description="Scan for common DKIM selectors, or check a specific selector you already know."
       inputLabel="Domain to check"

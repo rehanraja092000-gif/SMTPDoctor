@@ -11,7 +11,7 @@ interface Result {
 export default function Page() {
   return (
     <ToolShell<Result>
-      tag="WEB-02 / WEBSITE SECURITY"
+      tag="WEBSITE SECURITY"
       title="HSTS Checker"
       description="Check a website's HTTP Strict Transport Security policy, which forces browsers to connect over HTTPS and blocks downgrade attacks."
       inputLabel="Domain to check" inputPlaceholder="example.com" buttonLabel="Check HSTS"

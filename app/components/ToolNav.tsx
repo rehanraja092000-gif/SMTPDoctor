@@ -142,24 +142,19 @@ export default function ToolNav() {
                 href={`/tools/${tool.slug}`}
                 role="menuitem"
                 onClick={closeMenu}
-                className={`flex items-start gap-3 rounded-lg px-3 py-2 transition-colors ${
+                className={`block rounded-lg px-3 py-2 transition-colors ${
                   active ? "bg-[var(--accent-soft)]" : "hover:bg-[var(--surface-hover)]"
                 }`}
               >
-                <span className="font-mono text-[10px] text-[var(--text-muted)] pt-1 w-12 shrink-0">
-                  {tool.tag}
+                <span
+                  className={`block text-sm font-medium ${
+                    active ? "text-[var(--accent)]" : "text-[var(--text-primary)]"
+                  }`}
+                >
+                  {tool.name}
                 </span>
-                <span>
-                  <span
-                    className={`block text-sm font-medium ${
-                      active ? "text-[var(--accent)]" : "text-[var(--text-primary)]"
-                    }`}
-                  >
-                    {tool.name}
-                  </span>
-                  <span className="block text-xs text-[var(--text-secondary)]">
-                    {tool.short}
-                  </span>
+                <span className="block text-xs text-[var(--text-secondary)]">
+                  {tool.short}
                 </span>
               </Link>
             );

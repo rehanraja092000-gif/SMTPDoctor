@@ -21,7 +21,7 @@ interface SubdomainResult {
 export default function SubdomainCheckerPage() {
   return (
     <ToolShell<SubdomainResult>
-      tag="DIAG-02 / DIAGNOSTICS"
+      tag="DIAGNOSTICS"
       title="Subdomain Scanner"
       description="Scan a domain for commonly used subdomains like mail, vpn, cpanel, and staging environments."
       inputLabel="Domain to scan"

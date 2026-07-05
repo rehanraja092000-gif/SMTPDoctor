@@ -28,7 +28,7 @@ interface SPFResult {
 export default function SPFCheckerPage() {
   return (
     <ToolShell<SPFResult>
-      tag="AUTH-01 / EMAIL AUTHENTICATION"
+      tag="EMAIL AUTHENTICATION"
       title="SPF Checker"
       description="Look up a domain's SPF record, validate its syntax, and count DNS lookups against the limit that silently breaks SPF."
       inputLabel="Domain to check"

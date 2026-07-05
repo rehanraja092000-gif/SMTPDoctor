@@ -7,7 +7,7 @@ interface Result { domain: string; status: string; found: boolean; record: strin
 export default function Page() {
   return (
     <ToolShell<Result>
-      tag="MAIL-02 / EMAIL AUTHENTICATION"
+      tag="EMAIL AUTHENTICATION"
       title="TLS-RPT Checker"
       description="Check a domain's TLS-RPT record, which asks receiving servers to report back when TLS encryption for your email fails."
       inputLabel="Domain to check" inputPlaceholder="example.com" buttonLabel="Check TLS-RPT"

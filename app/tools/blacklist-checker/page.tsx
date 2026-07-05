@@ -19,7 +19,7 @@ interface BlacklistResult {
 export default function BlacklistCheckerPage() {
   return (
     <ToolShell<BlacklistResult>
-      tag="SEC-01 / SECURITY"
+      tag="SECURITY"
       title="Blacklist Checker"
       description="Check whether a domain or IP is listed on major real-time blackhole lists (RBLs)."
       inputLabel="Domain or IP to check"

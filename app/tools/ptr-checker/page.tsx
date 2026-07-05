@@ -15,7 +15,7 @@ interface PTRResult {
 export default function PTRCheckerPage() {
   return (
     <ToolShell<PTRResult>
-      tag="DNS-06 / DNS RECORDS"
+      tag="DNS RECORDS"
       title="PTR Lookup"
       description="Reverse DNS — find the hostname an IP address resolves back to."
       inputLabel="IP address to check"

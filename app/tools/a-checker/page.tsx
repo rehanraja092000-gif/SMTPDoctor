@@ -16,7 +16,7 @@ interface AResult {
 export default function ACheckerPage() {
   return (
     <ToolShell<AResult>
-      tag="DNS-03 / DNS RECORDS"
+      tag="DNS RECORDS"
       title="A / AAAA Lookup"
       description="Look up IPv4 (A) and IPv6 (AAAA) address records for any domain."
       inputLabel="Domain to check"

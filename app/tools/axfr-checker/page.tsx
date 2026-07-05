@@ -21,7 +21,7 @@ interface AxfrResult {
 export default function AxfrCheckerPage() {
   return (
     <ToolShell<AxfrResult>
-      tag="SEC-02 / SECURITY"
+      tag="SECURITY"
       title="AXFR Checker"
       description="Test whether a domain's nameservers allow unauthorized DNS zone transfers — a real, if now rare, misconfiguration."
       inputLabel="Domain to check"

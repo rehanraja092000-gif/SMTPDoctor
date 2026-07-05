@@ -15,7 +15,7 @@ interface TXTResult {
 export default function TXTCheckerPage() {
   return (
     <ToolShell<TXTResult>
-      tag="DNS-05 / DNS RECORDS"
+      tag="DNS RECORDS"
       title="TXT Record Lookup"
       description="View every TXT record published for a domain — SPF, verification codes, and more."
       inputLabel="Domain to check"

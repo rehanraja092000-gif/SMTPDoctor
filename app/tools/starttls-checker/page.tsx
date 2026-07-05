@@ -10,7 +10,7 @@ export default function Page() {
   const [port, setPort] = useState(587);
   return (
     <ToolShell<Result>
-      tag="MAIL-05 / DIAGNOSTICS"
+      tag="DIAGNOSTICS"
       title="STARTTLS Checker"
       description="Confirm whether a mail server offers STARTTLS, the mechanism that upgrades an SMTP connection to an encrypted one so mail isn't sent in the clear."
       inputLabel="Mail server host" inputPlaceholder="mail.example.com" buttonLabel="Check STARTTLS"

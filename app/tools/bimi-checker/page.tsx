@@ -7,7 +7,7 @@ interface Result { domain: string; selector: string; status: string; found: bool
 export default function Page() {
   return (
     <ToolShell<Result>
-      tag="MAIL-03 / EMAIL AUTHENTICATION"
+      tag="EMAIL AUTHENTICATION"
       title="BIMI Checker"
       description="Check a domain's BIMI record, which displays your verified brand logo beside authenticated messages in supporting inboxes like Gmail and Apple Mail."
       inputLabel="Domain to check" inputPlaceholder="example.com" buttonLabel="Check BIMI"

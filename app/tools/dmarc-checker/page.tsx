@@ -24,7 +24,7 @@ const alignLabel = (v: string) => (v === "s" ? "strict" : "relaxed");
 export default function DMARCCheckerPage() {
   return (
     <ToolShell<DMARCResult>
-      tag="AUTH-03 / EMAIL AUTHENTICATION"
+      tag="EMAIL AUTHENTICATION"
       title="DMARC Checker"
       description="Parse a domain's DMARC record into its policy, alignment, and reporting tags — and see how strong the enforcement really is."
       inputLabel="Domain to check"

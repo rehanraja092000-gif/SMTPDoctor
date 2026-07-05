@@ -20,7 +20,7 @@ interface PortScanResult {
 export default function PortCheckerPage() {
   return (
     <ToolShell<PortScanResult>
-      tag="SEC-03 / SECURITY"
+      tag="SECURITY"
       title="SMTP Port Tester"
       description="Test common mail, web, and hosting control panel ports on a public host."
       inputLabel="Host to test"

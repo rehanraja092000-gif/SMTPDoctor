@@ -15,7 +15,7 @@ interface NSResult {
 export default function NSCheckerPage() {
   return (
     <ToolShell<NSResult>
-      tag="DNS-02 / DNS RECORDS"
+      tag="DNS RECORDS"
       title="NS Lookup"
       description="Find the authoritative nameservers responsible for a domain."
       inputLabel="Domain to check"
