@@ -71,7 +71,7 @@ export default function Scorecard({
         </div>
         <div>
           <p className="text-xs font-mono text-[var(--text-muted)] uppercase tracking-wider">
-            Overall · {score} / 100
+            Reputation score
           </p>
           <p className="font-display text-xl font-semibold text-[var(--text-primary)]">
             {overallStatus}
@@ -83,14 +83,7 @@ export default function Scorecard({
         {checks.map((item, i) => (
           <li key={i} className="flex items-center justify-between gap-4 py-3">
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-medium text-[var(--text-primary)]">{item.name}</p>
-                {item.impact && (
-                  <span className="font-mono text-[11px] text-[var(--text-muted)]">
-                    {item.impact}
-                  </span>
-                )}
-              </div>
+              <p className="text-sm font-medium text-[var(--text-primary)]">{item.name}</p>
               {item.message && (
                 <p className="text-xs text-[var(--text-secondary)] mt-0.5">{item.message}</p>
               )}
