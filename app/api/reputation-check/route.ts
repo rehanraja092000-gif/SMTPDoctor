@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
+import { Resolver } from "node:dns/promises";
+import { analyzeSpf } from "../../../lib/spfParser";
+import { analyzeDmarc } from "../../../lib/dmarcParser";
+import { scanDKIM } from "../../../lib/dkimScanner";
 import { isValidDomain, normalizeDomain } from "../../../lib/validation";
 import { errorInfo } from "../../../lib/errors";
 
 const GOOGLE_API_KEY = process.env.GOOGLE_SAFE_BROWSING_API_KEY;
 
-async function resolveDNS(name: string, type: string) {
-  const url = `https://dns.google/resolve?name=${encodeURIComponent(name)}&type=${type}`;
-  const res = await fetch(url);
-  return res.json();
-}
+const resolver = new Resolver();
+resolver.setServers(["8.8.8.8", "1.1.1.1"]);
 
 interface CheckResult {
   name: string;
@@ -18,44 +19,12 @@ interface CheckResult {
   message: string;
 }
 
-interface DnsAnswer {
-  data?: string;
-}
-
-function pushCheck(
-  checks: CheckResult[],
-  suggestions: string[],
-  scoreRef: { value: number },
-  opts: {
-    name: string;
-    passed: boolean;
-    passLabel: string;
-    failLabel: string;
-    passMessage: string;
-    failMessage: string;
-    penalty: number;
-    suggestion?: string;
-  }
-) {
-  if (opts.passed) {
-    checks.push({
-      name: opts.name,
-      status: opts.passLabel,
-      success: true,
-      impact: "+0",
-      message: opts.passMessage,
-    });
-  } else {
-    scoreRef.value -= opts.penalty;
-    if (opts.suggestion) suggestions.push(opts.suggestion);
-    checks.push({
-      name: opts.name,
-      status: opts.failLabel,
-      success: false,
-      impact: `-${opts.penalty}`,
-      message: opts.failMessage,
-    });
-  }
+async function dohLookup(name: string, type: string) {
+  const res = await fetch(
+    `https://dns.google/resolve?name=${encodeURIComponent(name)}&type=${type}`,
+    { signal: AbortSignal.timeout(5000) }
+  );
+  return res.json();
 }
 
 export async function GET(req: Request) {
@@ -67,69 +36,94 @@ export async function GET(req: Request) {
   }
 
   const domain = normalizeDomain(rawDomain);
-
   if (!isValidDomain(domain)) {
     return NextResponse.json({ error: "Enter a valid domain, e.g. example.com" }, { status: 400 });
   }
 
-  const scoreRef = { value: 100 };
-  let unsafe = false;
   const checks: CheckResult[] = [];
   const suggestions: string[] = [];
+  let score = 0;
+  const maxScore = 100;
 
   try {
-    let hasSPF = false;
-    try {
-      const spfData = await resolveDNS(domain, "TXT");
-      hasSPF = (spfData.Answer || []).some(
-        (a: DnsAnswer) => a.data && a.data.toLowerCase().includes("v=spf1")
-      );
-    } catch {}
-    pushCheck(checks, suggestions, scoreRef, {
-      name: "SPF Record",
-      passed: hasSPF,
-      passLabel: "Valid",
-      failLabel: "Missing",
-      passMessage: "SPF record detected",
-      failMessage: "No SPF record found",
-      penalty: 15,
-      suggestion: "Add a valid SPF record to improve email trust and deliverability.",
-    });
+    // ---- SPF: 20 pts, quality-graded ----
+    const spf = await analyzeSpf(domain);
+    if (!spf.found) {
+      checks.push({ name: "SPF", status: "Missing", success: false, impact: "0 / 20", message: "No SPF record — receivers can't verify your senders" });
+      suggestions.push("Publish an SPF record listing every service allowed to send mail for your domain.");
+    } else if (spf.lookupLimitExceeded) {
+      score += 8;
+      checks.push({ name: "SPF", status: "Over lookup limit", success: false, impact: "8 / 20", message: `SPF exceeds the 10-lookup limit (${spf.lookupCount}) and will fail` });
+      suggestions.push("Reduce nested SPF includes — you're over the 10 DNS-lookup limit, which makes SPF fail.");
+    } else if (spf.allQualifier === "pass") {
+      score += 10;
+      checks.push({ name: "SPF", status: "Insecure (+all)", success: false, impact: "10 / 20", message: "SPF uses +all, allowing anyone to send as your domain" });
+      suggestions.push("Change +all to ~all or -all — +all lets anyone spoof your domain.");
+    } else if (!spf.valid) {
+      score += 14;
+      checks.push({ name: "SPF", status: "Has issues", success: false, impact: "14 / 20", message: spf.warnings[0] || "SPF record has minor issues" });
+    } else {
+      score += 20;
+      checks.push({ name: "SPF", status: "Valid", success: true, impact: "20 / 20", message: "SPF is published and valid" });
+    }
 
-    let hasDMARC = false;
-    try {
-      const dmarcData = await resolveDNS(`_dmarc.${domain}`, "TXT");
-      hasDMARC = (dmarcData.Answer || []).some(
-        (a: DnsAnswer) => a.data && a.data.toLowerCase().includes("v=dmarc1")
-      );
-    } catch {}
-    pushCheck(checks, suggestions, scoreRef, {
-      name: "DMARC Record",
-      passed: hasDMARC,
-      passLabel: "Valid",
-      failLabel: "Missing",
-      passMessage: "DMARC policy detected",
-      failMessage: "No DMARC policy found",
-      penalty: 20,
-      suggestion: "Configure a DMARC policy to protect against spoofing and phishing.",
-    });
+    // ---- DMARC: 25 pts, policy-strength graded ----
+    const dmarc = await analyzeDmarc(domain);
+    if (!dmarc.found) {
+      checks.push({ name: "DMARC", status: "Missing", success: false, impact: "0 / 25", message: "No DMARC — spoofed mail has no handling policy" });
+      suggestions.push("Add a DMARC record. Start at p=none to monitor, then move to quarantine or reject.");
+    } else if (dmarc.strength === "strong") {
+      score += 25;
+      checks.push({ name: "DMARC", status: "Enforced (reject)", success: true, impact: "25 / 25", message: "DMARC is at full enforcement" });
+    } else if (dmarc.strength === "moderate") {
+      score += 20;
+      checks.push({ name: "DMARC", status: "Quarantine", success: true, impact: "20 / 25", message: "DMARC enforces quarantine — consider moving to reject" });
+      suggestions.push("Move DMARC from quarantine to p=reject once you're confident legitimate mail passes.");
+    } else {
+      score += 8;
+      checks.push({ name: "DMARC", status: "Monitor only (p=none)", success: false, impact: "8 / 25", message: "p=none provides no protection — it only reports" });
+      suggestions.push("Your DMARC is p=none, which offers no spoofing protection. Move to quarantine, then reject.");
+    }
 
+    // ---- DKIM: 15 pts ----
+    const dkim = await scanDKIM(domain);
+    if (dkim.length > 0) {
+      score += 15;
+      checks.push({ name: "DKIM", status: "Found", success: true, impact: "15 / 15", message: `DKIM signing key found (${dkim.length} selector${dkim.length !== 1 ? "s" : ""})` });
+    } else {
+      checks.push({ name: "DKIM", status: "Not found", success: false, impact: "0 / 15", message: "No DKIM key found for common selectors" });
+      suggestions.push("Enable DKIM signing with your mail provider so receivers can verify your messages weren't altered.");
+    }
+
+    // ---- MX: 15 pts ----
     let hasMX = false;
     try {
-      const mxData = await resolveDNS(domain, "MX");
-      hasMX = (mxData.Answer || []).length > 0;
+      const mx = await resolver.resolveMx(domain);
+      hasMX = mx.length > 0;
     } catch {}
-    pushCheck(checks, suggestions, scoreRef, {
-      name: "MX Records",
-      passed: hasMX,
-      passLabel: "Configured",
-      failLabel: "Missing",
-      passMessage: "Mail servers detected",
-      failMessage: "No MX records found",
-      penalty: 10,
-      suggestion: "Configure MX records so email services can properly receive mail.",
-    });
+    if (hasMX) {
+      score += 15;
+      checks.push({ name: "MX", status: "Configured", success: true, impact: "15 / 15", message: "Mail servers are configured" });
+    } else {
+      checks.push({ name: "MX", status: "Missing", success: false, impact: "0 / 15", message: "No MX records — the domain can't receive mail" });
+      suggestions.push("Configure MX records so the domain can receive email.");
+    }
 
+    // ---- DNSSEC: 10 pts ----
+    let dnssec = false;
+    try {
+      const ds = await dohLookup(domain, "DS");
+      dnssec = Array.isArray(ds.Answer) && ds.Answer.some((a: { type: number }) => a.type === 43);
+    } catch {}
+    if (dnssec) {
+      score += 10;
+      checks.push({ name: "DNSSEC", status: "Enabled", success: true, impact: "10 / 10", message: "DNS is cryptographically signed" });
+    } else {
+      checks.push({ name: "DNSSEC", status: "Not enabled", success: false, impact: "0 / 10", message: "DNSSEC is off — DNS responses can't be verified" });
+      suggestions.push("Enable DNSSEC at your DNS provider to protect against DNS spoofing.");
+    }
+
+    // ---- Threat / Safe Browsing: 15 pts ----
     if (GOOGLE_API_KEY) {
       try {
         const response = await fetch(
@@ -146,84 +140,44 @@ export async function GET(req: Request) {
                 threatEntries: [{ url: `http://${domain}` }],
               },
             }),
+            signal: AbortSignal.timeout(5000),
           }
         );
-
         const data = await response.json();
-
         if (data.matches) {
-          unsafe = true;
-          scoreRef.value -= 50;
-          suggestions.push(
-            "Google Safe Browsing flagged this domain. Scan the website for malware, phishing pages, or malicious scripts."
-          );
-          checks.push({
-            name: "Google Safe Browsing",
-            status: "Dangerous",
-            success: false,
-            impact: "-50",
-            message: "Google flagged this domain as unsafe",
-          });
+          checks.push({ name: "Threat status", status: "Flagged", success: false, impact: "0 / 15", message: "Google Safe Browsing flagged this domain as unsafe" });
+          suggestions.push("This domain is flagged by Google Safe Browsing — investigate for malware or phishing immediately.");
         } else {
-          checks.push({
-            name: "Google Safe Browsing",
-            status: "Clean",
-            success: true,
-            impact: "+0",
-            message: "No malware or phishing detected",
-          });
+          score += 15;
+          checks.push({ name: "Threat status", status: "Clean", success: true, impact: "15 / 15", message: "No malware or phishing detected" });
         }
       } catch {
-        checks.push({
-          name: "Google Safe Browsing",
-          status: "Unavailable",
-          success: false,
-          impact: "0",
-          message: "Unable to query Google Safe Browsing",
-        });
+        score += 15;
+        checks.push({ name: "Threat status", status: "Unavailable", success: true, impact: "15 / 15", message: "Threat check unavailable — not counted against score" });
       }
     } else {
-      checks.push({
-        name: "Google Safe Browsing",
-        status: "Not configured",
-        success: false,
-        impact: "0",
-        message: "Server is missing a Safe Browsing API key",
-      });
+      // No API key: don't penalize the domain for a server config gap.
+      score += 15;
+      checks.push({ name: "Threat status", status: "Not checked", success: true, impact: "15 / 15", message: "Threat scanning not configured on this server" });
     }
 
-    const suspiciousWords = ["spam", "hack", "phish", "fake", "scam"];
-    const suspicious = suspiciousWords.some((w) => domain.includes(w));
-    checks.push({
-      name: "Suspicious Keywords",
-      status: suspicious ? "Detected" : "Clean",
-      success: !suspicious,
-      impact: "+0",
-      message: suspicious
-        ? "Domain name contains wording sometimes associated with spam — not a definitive signal on its own"
-        : "No suspicious keywords detected",
-    });
-
-    const score = Math.max(0, Math.min(100, scoreRef.value));
+    const finalScore = Math.max(0, Math.min(maxScore, Math.round(score)));
     let overallStatus = "Excellent";
-    if (score < 90) overallStatus = "Good";
-    if (score < 75) overallStatus = "Average";
-    if (score < 50) overallStatus = "Poor";
-    if (score < 25) overallStatus = "Dangerous";
+    if (finalScore < 90) overallStatus = "Good";
+    if (finalScore < 75) overallStatus = "Needs work";
+    if (finalScore < 55) overallStatus = "Poor";
+    if (finalScore < 35) overallStatus = "Critical";
 
     return NextResponse.json({
       domain,
       overallStatus,
-      score,
-      unsafe,
+      score: finalScore,
+      unsafe: finalScore < 35,
       checks,
       suggestions,
     });
   } catch (error) {
     const { message } = errorInfo(error);
-    return NextResponse.json(
-      { error: message || "Lookup failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: message || "Lookup failed" }, { status: 500 });
   }
 }

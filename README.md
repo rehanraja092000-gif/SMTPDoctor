@@ -1,38 +1,36 @@
-# SMTPDoctor
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-**Free email deliverability & DNS diagnostic tools — no signup, no limits.**
+## Getting Started
 
-[**smtpdoctor.com →**](https://smtpdoctor.com)
+First, run the development server:
 
-A free toolkit for diagnosing the things that quietly break email deliverability and domain security. 28 tools that run live against real DNS and mail infrastructure — the checks MXToolbox charges for, without the paywall.
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-## Tools
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-**Email authentication**
-- SPF Checker — validates syntax and counts DNS lookups against the 10-lookup limit that silently breaks SPF
-- - DKIM Checker — scans common selectors or checks a specific one
-  - - DMARC Checker — parses policy, alignment, pct, and reporting addresses
-    - - BIMI, MTA-STS, TLS-RPT checkers
-     
-      - **DNS records**
-      - - MX, NS, A/AAAA, CNAME, TXT, PTR lookups
-        - - DNS propagation across Google, Cloudflare, Quad9, and OpenDNS
-          - - DNSSEC and CAA checkers
-           
-            - **Security**
-            - - Blacklist checker (11 major RBLs)
-              - - Open relay test, AXFR zone-transfer test
-                - - SSL/TLS certificate inspection, security headers, HSTS
-                 
-                  - **Diagnostics**
-                  - - WHOIS, domain age, subdomain scanner
-                    - - SMTP banner and STARTTLS checks
-                      - - Composite domain reputation scoring
-                       
-                        - ## Tech
-                        - 
-                        Next.js 16 (App Router), TypeScript, Tailwind CSS, deployed on Vercel. All checks are real server-side DNS/socket queries — not cached lookups.
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## About
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-Built by RehaVerse Studio. Free to use, no account required. Feedback and tool suggestions welcome via issues.
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

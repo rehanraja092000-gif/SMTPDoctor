@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import StatusChecklist, { ChecklistItem } from "./StatusChecklist";
+import StatusBadge, { toneForBool } from "./StatusBadge";
+
+interface ScoreCheck {
+  name: string;
+  status: string;
+  success: boolean;
+  impact?: string;
+  message?: string;
+}
 
 function prefersReducedMotion() {
   return (
@@ -11,26 +19,19 @@ function prefersReducedMotion() {
 }
 
 function useCountUp(target: number, durationMs = 900) {
-  // Start at the final value when motion is reduced, so no animation runs
-  // and the effect never has to set state synchronously.
   const [value, setValue] = useState(() => (prefersReducedMotion() ? target : 0));
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (prefersReducedMotion()) return;
-
     const start = performance.now();
     const tick = (now: number) => {
       const progress = Math.min((now - start) / durationMs, 1);
-      // ease-out cubic
       const eased = 1 - Math.pow(1 - progress, 3);
       setValue(Math.round(eased * target));
-      if (progress < 1) {
-        rafRef.current = requestAnimationFrame(tick);
-      }
+      if (progress < 1) rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
-
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
@@ -47,13 +48,13 @@ export default function Scorecard({
 }: {
   score: number;
   overallStatus: string;
-  checks: ChecklistItem[];
+  checks: ScoreCheck[];
   suggestions: string[];
 }) {
   const animatedScore = useCountUp(score);
 
   const ringColor =
-    score >= 90 ? "var(--accent)" : score >= 50 ? "var(--warning)" : "var(--danger)";
+    score >= 90 ? "var(--accent)" : score >= 55 ? "var(--warning)" : "var(--danger)";
 
   return (
     <div>
@@ -70,7 +71,7 @@ export default function Scorecard({
         </div>
         <div>
           <p className="text-xs font-mono text-[var(--text-muted)] uppercase tracking-wider">
-            Overall
+            Overall · {score} / 100
           </p>
           <p className="font-display text-xl font-semibold text-[var(--text-primary)]">
             {overallStatus}
@@ -78,12 +79,31 @@ export default function Scorecard({
         </div>
       </div>
 
-      <StatusChecklist items={checks} />
+      <ul className="divide-y divide-[var(--border)]">
+        {checks.map((item, i) => (
+          <li key={i} className="flex items-center justify-between gap-4 py-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium text-[var(--text-primary)]">{item.name}</p>
+                {item.impact && (
+                  <span className="font-mono text-[11px] text-[var(--text-muted)]">
+                    {item.impact}
+                  </span>
+                )}
+              </div>
+              {item.message && (
+                <p className="text-xs text-[var(--text-secondary)] mt-0.5">{item.message}</p>
+              )}
+            </div>
+            <StatusBadge tone={toneForBool(item.success)}>{item.status}</StatusBadge>
+          </li>
+        ))}
+      </ul>
 
       {suggestions.length > 0 && (
         <div className="mt-5 pt-5 border-t border-[var(--border)]">
           <p className="text-xs font-mono text-[var(--text-muted)] uppercase tracking-wider mb-2">
-            Suggestions
+            Priority fixes
           </p>
           <ul className="space-y-2">
             {suggestions.map((s, i) => (

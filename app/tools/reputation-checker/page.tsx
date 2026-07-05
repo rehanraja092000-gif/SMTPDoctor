@@ -26,7 +26,7 @@ export default function ReputationCheckerPage() {
     <ToolShell<ReputationResult>
       tag="SEC-04 / SECURITY"
       title="Domain Reputation Checker"
-      description="A composite score covering SPF, DMARC, MX configuration, and threat intelligence — with concrete fixes for anything that's missing."
+      description="A weighted score that grades the quality of your SPF, DKIM, DMARC, MX, DNSSEC, and threat status — not just whether records exist — with prioritized fixes."
       inputLabel="Domain to check"
       inputPlaceholder="example.com"
       buttonLabel="Run full scan"
