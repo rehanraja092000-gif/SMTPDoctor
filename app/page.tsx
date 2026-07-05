@@ -29,7 +29,7 @@ export default function Home() {
       <section className="relative overflow-hidden border-b border-[var(--border)] scan-line">
         <div className="mx-auto max-w-5xl px-6 py-24 sm:py-28 text-center relative z-10">
           <p className="font-mono text-xs text-[var(--accent)] tracking-[0.2em] uppercase animate-result">
-            16 tools · no signup · runs in seconds
+            free forever · no signup · runs in seconds
           </p>
           <h1
             className="mt-4 font-display text-4xl sm:text-6xl font-semibold leading-[1.05] text-[var(--text-primary)] animate-result"

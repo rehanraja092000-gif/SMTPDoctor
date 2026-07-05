@@ -23,7 +23,7 @@ export default function Footer() {
             </p>
             <p className="mt-3 text-sm text-[var(--text-secondary)] max-w-[32ch] leading-relaxed">
               A free, no-signup toolkit for diagnosing email deliverability, DNS
-              health, and domain security. 16 tools that run directly against
+              health, and domain security. Every tool runs directly against
               live DNS and mail infrastructure.
             </p>
 
