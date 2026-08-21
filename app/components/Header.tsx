@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Header() {
   return (
@@ -39,6 +40,7 @@ export default function Header() {
           >
             Reputation score
           </Link>
+          <ThemeToggle />
         </nav>
       </div>
     </header>
