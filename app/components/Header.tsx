@@ -28,6 +28,12 @@ export default function Header() {
             All tools
           </Link>
           <Link
+            href="/guides"
+            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+          >
+            Guides
+          </Link>
+          <Link
             href="/tools/reputation-checker"
             className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors hidden sm:inline"
           >
