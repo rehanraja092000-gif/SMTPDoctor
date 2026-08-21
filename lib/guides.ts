@@ -34,6 +34,43 @@ export const GUIDES: Guide[] = [
       { slug: "blacklist-checker", name: "Blacklist Checker" },
     ],
   },
+  {
+    slug: "why-emails-go-to-spam",
+    title: "Why Your Emails Go to Spam (and How to Fix It)",
+    description:
+      "The real reasons legitimate email lands in the spam folder — authentication, reputation, content, and list quality — plus how to fix each.",
+    metaTitle: "Why Do My Emails Go to Spam? Causes & Fixes (2026)",
+    metaDescription:
+      "Emails landing in spam? Here are the real reasons — SPF/DKIM/DMARC failures, blacklisting, poor reputation, spammy content — and exactly how to fix each one.",
+    readTime: "9 min read",
+    date: "2026-01-16",
+    updated: "2026-01-16",
+    relatedTools: [
+      { slug: "spf-checker", name: "SPF Checker" },
+      { slug: "dkim-checker", name: "DKIM Checker" },
+      { slug: "dmarc-checker", name: "DMARC Checker" },
+      { slug: "blacklist-checker", name: "Blacklist Checker" },
+      { slug: "reputation-checker", name: "Domain Reputation Checker" },
+    ],
+  },
+  {
+    slug: "spf-dkim-dmarc-setup",
+    title: "How to Set Up SPF, DKIM, and DMARC Correctly",
+    description:
+      "A step-by-step walkthrough of email authentication: what each record does, how to configure them, and how to avoid the mistakes that silently break them.",
+    metaTitle: "How to Set Up SPF, DKIM & DMARC (Step-by-Step, 2026)",
+    metaDescription:
+      "A clear, step-by-step guide to setting up SPF, DKIM, and DMARC correctly — what each record does, how to publish them, and the common mistakes to avoid.",
+    readTime: "11 min read",
+    date: "2026-01-17",
+    updated: "2026-01-17",
+    relatedTools: [
+      { slug: "spf-checker", name: "SPF Checker" },
+      { slug: "dkim-checker", name: "DKIM Checker" },
+      { slug: "dmarc-checker", name: "DMARC Checker" },
+      { slug: "mtasts-checker", name: "MTA-STS Checker" },
+    ],
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {

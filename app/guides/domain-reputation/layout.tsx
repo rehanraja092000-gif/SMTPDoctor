@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getGuide } from "../../../lib/guides";
 import { SITE } from "../../../lib/tools";
+import { buildGuideSchema, SchemaScripts } from "../../../lib/guideSchema";
 
 const guide = getGuide("domain-reputation")!;
 
@@ -16,10 +17,10 @@ export const metadata: Metadata = {
   },
 };
 
-const faqs = [
+export const faqs = [
   {
     q: "What is a good domain reputation score?",
-    a: "Reputation is generally judged as high, medium, or low rather than a single universal number. In practical terms, a domain with valid SPF, DKIM, and an enforced DMARC policy, clean blacklist status, and consistent sending behavior is treated as high reputation. Any blacklisting, authentication failures, or spam complaints push it down.",
+    a: "Reputation is generally judged as high, medium, or low rather than a single universal number. A domain with valid SPF, DKIM, and an enforced DMARC policy, clean blacklist status, and consistent sending behavior is treated as high reputation. Any blacklisting, authentication failures, or spam complaints push it down.",
   },
   {
     q: "How do I check my domain's reputation?",
@@ -36,42 +37,9 @@ const faqs = [
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const articleSchema = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: guide.title,
-    description: guide.metaDescription,
-    datePublished: guide.date,
-    dateModified: guide.updated,
-    author: { "@type": "Organization", name: SITE.developer },
-    publisher: {
-      "@type": "Organization",
-      name: SITE.name,
-      logo: { "@type": "ImageObject", url: `${SITE.url}/brand/icon-512.png` },
-    },
-    mainEntityOfPage: `${SITE.url}/guides/${guide.slug}`,
-  };
-
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faqs.map((f) => ({
-      "@type": "Question",
-      name: f.q,
-      acceptedAnswer: { "@type": "Answer", text: f.a },
-    })),
-  };
-
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
+      <SchemaScripts schemas={buildGuideSchema("domain-reputation", faqs)} />
       {children}
     </>
   );
