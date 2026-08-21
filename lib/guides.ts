@@ -71,6 +71,42 @@ export const GUIDES: Guide[] = [
       { slug: "mtasts-checker", name: "MTA-STS Checker" },
     ],
   },
+  {
+    slug: "subdomain-scanning",
+    title: "What Is a Subdomain Scanner and How to Use One",
+    description:
+      "What subdomains are, why finding them matters for security, and how to scan a domain for its subdomains — plus what to do with what you find.",
+    metaTitle: "Subdomain Scanner: Find & Check Subdomains (2026 Guide)",
+    metaDescription:
+      "Learn what a subdomain scanner does, why discovering subdomains matters for security and email, and how to scan any domain's subdomains free — no signup.",
+    readTime: "7 min read",
+    date: "2026-01-18",
+    updated: "2026-01-18",
+    relatedTools: [
+      { slug: "subdomain-checker", name: "Subdomain Scanner" },
+      { slug: "propagation-checker", name: "DNS Propagation Checker" },
+      { slug: "cname-checker", name: "CNAME Checker" },
+      { slug: "ssl-checker", name: "SSL / TLS Checker" },
+    ],
+  },
+  {
+    slug: "cname-records-explained",
+    title: "CNAME Records Explained: How to Check and Use Them",
+    description:
+      "What a CNAME record is, how it differs from an A record, common use cases, and how to look up and verify a CNAME for any domain.",
+    metaTitle: "CNAME Records Explained + How to Check Them (2026)",
+    metaDescription:
+      "What is a CNAME record? Learn how CNAMEs work, how they differ from A records, when to use them, and how to look up and verify a CNAME record for any domain.",
+    readTime: "7 min read",
+    date: "2026-01-19",
+    updated: "2026-01-19",
+    relatedTools: [
+      { slug: "cname-checker", name: "CNAME Checker" },
+      { slug: "a-checker", name: "A Record Checker" },
+      { slug: "propagation-checker", name: "DNS Propagation Checker" },
+      { slug: "txt-checker", name: "TXT Record Checker" },
+    ],
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {
