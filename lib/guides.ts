@@ -72,39 +72,21 @@ export const GUIDES: Guide[] = [
     ],
   },
   {
-    slug: "subdomain-scanning",
-    title: "What Is a Subdomain Scanner and How to Use One",
+    slug: "php2shell-vulnerability-explained",
+    title: "PHP2Shell (CVE-2026-109618 & 109619): What Happened and How to Check If You're Affected",
     description:
-      "What subdomains are, why finding them matters for security, and how to scan a domain for its subdomains — plus what to do with what you find.",
-    metaTitle: "Subdomain Scanner: Find & Check Subdomains (2026 Guide)",
+      "The October 2026 PHP vulnerability that took government sites offline, explained — what PHP2Shell is, who's affected, how to check your site, and how to patch.",
+    metaTitle: "PHP2Shell Vulnerability Explained: Are You Affected? (2026)",
     metaDescription:
-      "Learn what a subdomain scanner does, why discovering subdomains matters for security and email, and how to scan any domain's subdomains free — no signup.",
-    readTime: "7 min read",
-    date: "2026-01-18",
-    updated: "2026-01-18",
+      "The PHP2Shell flaws (CVE-2026-109618 & CVE-2026-109619) took websites offline worldwide in October 2026. Learn what happened, how to check if your site is affected, and how to patch.",
+    readTime: "9 min read",
+    date: "2026-10-23",
+    updated: "2026-10-23",
     relatedTools: [
-      { slug: "subdomain-checker", name: "Subdomain Scanner" },
-      { slug: "propagation-checker", name: "DNS Propagation Checker" },
-      { slug: "cname-checker", name: "CNAME Checker" },
+      { slug: "headers-checker", name: "HTTP Headers Checker" },
       { slug: "ssl-checker", name: "SSL / TLS Checker" },
-    ],
-  },
-  {
-    slug: "cname-records-explained",
-    title: "CNAME Records Explained: How to Check and Use Them",
-    description:
-      "What a CNAME record is, how it differs from an A record, common use cases, and how to look up and verify a CNAME for any domain.",
-    metaTitle: "CNAME Records Explained + How to Check Them (2026)",
-    metaDescription:
-      "What is a CNAME record? Learn how CNAMEs work, how they differ from A records, when to use them, and how to look up and verify a CNAME record for any domain.",
-    readTime: "7 min read",
-    date: "2026-01-19",
-    updated: "2026-01-19",
-    relatedTools: [
-      { slug: "cname-checker", name: "CNAME Checker" },
-      { slug: "a-checker", name: "A Record Checker" },
-      { slug: "propagation-checker", name: "DNS Propagation Checker" },
-      { slug: "txt-checker", name: "TXT Record Checker" },
+      { slug: "reputation-checker", name: "Domain Reputation Checker" },
+      { slug: "blacklist-checker", name: "Blacklist Checker" },
     ],
   },
 ];
